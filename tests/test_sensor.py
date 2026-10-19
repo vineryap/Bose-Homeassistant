@@ -3,7 +3,7 @@
 from types import SimpleNamespace
 
 from bose import sensor
-from pybose.BoseSpeaker import BoseRequestException
+from bose._pybose.BoseSpeaker import BoseRequestException
 
 from .conftest import FakeHass, FakeSpeaker
 

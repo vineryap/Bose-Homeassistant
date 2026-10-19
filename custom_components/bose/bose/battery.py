@@ -7,8 +7,8 @@ Entity classes to avoid multiple-inheritance conflicts.
 
 from typing import Any, cast
 
-from pybose.BoseResponse import Battery
-from pybose.BoseSpeaker import BoseSpeaker
+from .._pybose.BoseResponse import Battery
+from .._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant

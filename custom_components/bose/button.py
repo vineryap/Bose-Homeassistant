@@ -1,7 +1,7 @@
 """Support for Bose power button."""
 
-from pybose.BoseResponse import Preset
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseResponse import Preset
+from ._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry

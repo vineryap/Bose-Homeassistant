@@ -1,12 +1,12 @@
 """Support for Bose source selection."""
 
-from pybose.BoseResponse import (
+from ._pybose.BoseResponse import (
     AudioMode,
     CecSettings,
     DualMonoSettings,
     RebroadcastLatencyMode,
 )
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry

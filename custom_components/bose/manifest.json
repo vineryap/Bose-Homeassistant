@@ -6,16 +6,19 @@
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/cavefire/Bose-Homeassistant",
+  "documentation": "https://github.com/vineryap/Bose-Homeassistant",
   "homekit": {},
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/cavefire/Bose-Homeassistant/issues",
+  "issue_tracker": "https://github.com/vineryap/Bose-Homeassistant/issues",
   "requirements": [
-    "pybose==2026.10.2",
-    "pychromecast>=13.0.0"
+    "pychromecast>=13.0.0",
+    "PyJWT>=2.0.0",
+    "requests>=2.31.0",
+    "websockets>=14.0",
+    "zeroconf>=0.141"
   ],
   "ssdp": [],
-  "version": "1.3.5",
+  "version": "1.3.6",
   "zeroconf": [
     "_bose-passport._tcp.local."
   ]

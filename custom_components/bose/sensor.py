@@ -1,6 +1,6 @@
 """Support for Bose battery, WiFi, and network status sensors."""
 
-from pybose.BoseResponse import Battery, NetworkStatus, NetworkTypeEnum, WifiStatus
+from ._pybose.BoseResponse import Battery, NetworkStatus, NetworkTypeEnum, WifiStatus
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from pybose import BoseSpeaker
+from ._pybose import BoseSpeaker
 
 from .bose.battery import BoseBatteryBase
 from .bose.network import BoseNetworkBase

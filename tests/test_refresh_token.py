@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import bose
 from bose import refresh_token
-from pybose.BoseAuth import BoseAuth, BoseAuthRejectedError, BoseAuthUnavailableError
+from bose._pybose.BoseAuth import BoseAuth, BoseAuthRejectedError, BoseAuthUnavailableError
 import pytest
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -108,7 +108,7 @@ async def test_unavailable_login_service_is_retried_later(monkeypatch, error):
 
 
 def test_requires_pybose_with_refresh_error_types():
-    """The manifest pins a pybose release that reports why a refresh failed."""
+    """The lab integration bundles the pybose refresh error types."""
     assert issubclass(BoseAuthRejectedError, ValueError)
     assert bose.BoseAuthRejectedError is BoseAuthRejectedError
 

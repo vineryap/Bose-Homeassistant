@@ -14,17 +14,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # Assistant loads it from custom_components.
 sys.path.insert(0, str(REPO_ROOT / "custom_components"))
 
-# pybose is a runtime requirement of the integration. Allow pointing at a local
-# source checkout so the tests can run without installing the release.
-if (pybose_path := os.environ.get("PYBOSE_PATH")) is not None:
-    sys.path.insert(0, pybose_path)
+# The lab build bundles the exact pybose revision used at runtime.
 
 try:
-    import pybose  # noqa: F401
+    import bose._pybose  # noqa: F401
 except ImportError as err:  # pragma: no cover - environment problem
     raise ImportError(
-        "pybose is required to run these tests. Install it with "
-        "`pip install pybose` or set PYBOSE_PATH to a source checkout."
+        "Bundled pybose package missing: "
+        "Install the entire test integration."
     ) from err
 
 
@@ -69,6 +66,10 @@ class FakeSpeaker:
     async def get_system_info(self) -> dict[str, Any]:
         """Return the system info."""
         return self.values.get("/system/info", {})
+
+    async def get_audio_format(self) -> dict[str, Any]:
+        """Exercise the public library getter rather than a private request."""
+        return await self._request("/audio/format", "GET")
 
     async def get_audio_setting(self, option: str) -> dict[str, Any]:
         """Read a sound setting, rejecting the ones pybose does not know."""

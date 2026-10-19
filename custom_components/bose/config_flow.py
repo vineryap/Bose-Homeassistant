@@ -3,9 +3,9 @@
 import asyncio
 from typing import Any
 
-from pybose.BoseAuth import BoseAuth
-from pybose.BoseDiscovery import BoseDiscovery
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseAuth import BoseAuth
+from ._pybose.BoseDiscovery import BoseDiscovery
+from ._pybose.BoseSpeaker import BoseSpeaker
 import voluptuous as vol
 
 from homeassistant import config_entries

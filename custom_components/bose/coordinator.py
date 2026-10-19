@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -144,8 +144,8 @@ class BoseCoordinator(DataUpdateCoordinator[BoseCoordinatorData]):
             return cached
 
         _LOGGER.debug("Fetching fresh audio format data")
-        # pybose has no dedicated getter for this resource.
-        result = await self.speaker._request(resource, "GET")  # noqa: SLF001
+        # Use the public accessor supplied by our bundled pybose test build.
+        result = await self.speaker.get_audio_format()
         result_dict = self._convert_to_dict(result)
         self._cache_message({"header": {"resource": resource}, "body": result_dict})
         return result_dict

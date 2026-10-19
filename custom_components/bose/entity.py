@@ -3,7 +3,7 @@
 from typing import cast
 
 from propcache.api import cached_property
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity

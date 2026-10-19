@@ -2,8 +2,8 @@
 
 from typing import Any
 
-from pybose.BoseResponse import Accessories, SystemInfo, SystemTimeout
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseResponse import Accessories, SystemInfo, SystemTimeout
+from ._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry

@@ -1,7 +1,7 @@
 """Tests for source tracking on the Bose media player."""
 
 from bose.media_player import BoseMediaPlayer
-from pybose.BoseResponse import ContentNowPlaying
+from bose._pybose.BoseResponse import ContentNowPlaying
 
 PHONE = {"mac": "AA:BB", "name": "Phone", "deviceClass": "phone"}
 SINK_STATUS_WITH_PHONE = {"activeDevice": "AA:BB", "devices": [PHONE]}

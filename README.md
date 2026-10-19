@@ -1,3 +1,5 @@
+> **Temporary Bose Soundbar 700 home-lab testing fork.** This is NOT a released upstream Bose integration. It includes five locally tested pybose changes embedded for compatibility testing. See [LAB_TESTING.md](LAB_TESTING.md) for backup, safe tests, virtual remote and rollback. Do not submit support requests to the upstream maintainer for this experimental version.
+
 # Bose Homeassistant
 
 This is a custom component for Home Assistant to integrate with Bose soundbars / speakers.

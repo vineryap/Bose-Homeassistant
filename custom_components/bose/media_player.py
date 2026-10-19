@@ -3,7 +3,7 @@
 import asyncio
 from typing import Any
 
-from pybose.BoseResponse import (
+from ._pybose.BoseResponse import (
     AudioVolume,
     BluetoothSinkList,
     BluetoothSinkStatus,
@@ -11,7 +11,7 @@ from pybose.BoseResponse import (
     ContentNowPlaying,
     SystemInfo,
 )
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseSpeaker import BoseSpeaker
 import pychromecast
 from pychromecast import discovery
 from pychromecast.discovery import CastBrowser, SimpleCastListener

@@ -3,8 +3,8 @@
 import asyncio
 import re
 
-from pybose.BoseResponse import Audio
-from pybose.BoseSpeaker import BoseSpeaker
+from ._pybose.BoseResponse import Audio
+from ._pybose.BoseSpeaker import BoseSpeaker
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry

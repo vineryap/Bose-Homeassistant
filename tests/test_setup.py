@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import bose
 from bose import async_setup_entry
 import jwt
-from pybose.BoseSpeaker import BoseRequestException
+from bose._pybose.BoseSpeaker import BoseRequestException
 import pytest
 
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady

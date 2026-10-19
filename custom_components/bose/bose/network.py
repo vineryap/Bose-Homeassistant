@@ -5,8 +5,8 @@ entities. It intentionally does not inherit from Home Assistant
 Entity classes to avoid multiple-inheritance conflicts.
 """
 
-from pybose.BoseResponse import NetworkStatus
-from pybose.BoseSpeaker import BoseSpeaker
+from .._pybose.BoseResponse import NetworkStatus
+from .._pybose.BoseSpeaker import BoseSpeaker
 
 from ..const import _LOGGER, DOMAIN
 from ..coordinator import BoseCoordinator

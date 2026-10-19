@@ -1,0 +1,99 @@
+# Bose Smart Soundbar 700 virtual remote with built-in HA cards.
+# Replace ALL media_player.soundbar occurrences with your actual Bose entity ID.
+# This controls the soundbar, NOT arbitrary TV IR keys or physical BLE pairing.
+type: vertical-stack
+cards:
+  - type: media-control
+    entity: media_player.soundbar
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: button
+        name: Power on
+        icon: mdi:power
+        tap_action:
+          action: perform-action
+          perform_action: media_player.turn_on
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Power off
+        icon: mdi:power-off
+        tap_action:
+          action: perform-action
+          perform_action: media_player.turn_off
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Mute
+        icon: mdi:volume-mute
+        tap_action:
+          action: perform-action
+          perform_action: media_player.volume_mute
+          target:
+            entity_id: media_player.soundbar
+          data:
+            is_volume_muted: true
+      - type: button
+        name: Volume -
+        icon: mdi:volume-minus
+        tap_action:
+          action: perform-action
+          perform_action: media_player.volume_down
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Volume +
+        icon: mdi:volume-plus
+        tap_action:
+          action: perform-action
+          perform_action: media_player.volume_up
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Unmute
+        icon: mdi:volume-high
+        tap_action:
+          action: perform-action
+          perform_action: media_player.volume_mute
+          target:
+            entity_id: media_player.soundbar
+          data:
+            is_volume_muted: false
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: button
+        name: Previous
+        icon: mdi:skip-previous
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_previous_track
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Pause
+        icon: mdi:pause
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_pause
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Next
+        icon: mdi:skip-next
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_next_track
+          target:
+            entity_id: media_player.soundbar
+      - type: button
+        name: Play
+        icon: mdi:play
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_play
+          target:
+            entity_id: media_player.soundbar

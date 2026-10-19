@@ -3,9 +3,9 @@
 import asyncio
 import json
 
-from pybose.BoseAuth import BoseAuth, BoseAuthRejectedError
-from pybose.BoseResponse import Accessories, NetworkStateEnum
-from pybose.BoseSpeaker import BoseRequestException, BoseSpeaker
+from ._pybose.BoseAuth import BoseAuth, BoseAuthRejectedError
+from ._pybose.BoseResponse import Accessories, NetworkStateEnum
+from ._pybose.BoseSpeaker import BoseRequestException, BoseSpeaker
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import (
