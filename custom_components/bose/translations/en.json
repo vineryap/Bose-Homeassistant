@@ -219,6 +219,15 @@
             },
             "network_ip": {
                 "name": "Network IP Address"
+            },
+            "accessories_subs_diagnostic": {
+                "name": "Bass Module Connection"
+            },
+            "accessories_rears_diagnostic": {
+                "name": "Surround Speakers Connection"
+            },
+            "accessories_pairing_diagnostic": {
+                "name": "Accessory Pairing Status"
             }
         },
         "switch": {
