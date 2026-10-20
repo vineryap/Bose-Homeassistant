@@ -476,6 +476,12 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
 def setup(hass: HomeAssistant, config: ConfigEntry) -> bool:
     """Set up the Bose component."""
+    # Guard explicit pairing actions against two simultaneous GET/PUT cycles.
+    pairing_locks: dict[str, asyncio.Lock] = {}
+    # Only a short-lived duplicate-command guard. No background polling or
+    # automatic pairing; reconnects invalidate commands for the old speaker.
+    recent_pairing_commands: dict[str, tuple[BoseSpeaker, bool, float]] = {}
+    PAIRING_COMMAND_GRACE_SECONDS = 15.0
 
     async def handle_custom_request(call: ServiceCall) -> ServiceResponse:
         raw_device_id = call.data.get("device_id")
@@ -563,11 +569,49 @@ def setup(hass: HomeAssistant, config: ConfigEntry) -> bool:
         # Do not silently translate an accessory target into a soundbar write.
         if stored.get("speaker_ha_device_id") != ha_device_id:
             raise ValueError("Select the soundbar device, not a Bose accessory")
-        await change_accessory_pairing(
-            stored["speaker"],
-            start=start,
-            confirmation=call.data.get("confirmation"),
-        )
+        async with pairing_locks.setdefault(
+            device_entry.primary_config_entry, asyncio.Lock()
+        ):
+            # Revalidate while holding the lock: a reconnect may replace the
+            # speaker object while this action is waiting for its turn.
+            current = hass.data.get(DOMAIN, {}).get(
+                device_entry.primary_config_entry
+            )
+            if (
+                not isinstance(current, dict)
+                or current.get("speaker_ha_device_id") != ha_device_id
+                or current.get("speaker") is None
+            ):
+                raise ValueError("Bose soundbar is not connected")
+            speaker = current["speaker"]
+            entry_id = device_entry.primary_config_entry
+            recent = recent_pairing_commands.get(entry_id)
+            if (
+                recent is None
+                or recent[0] is not speaker
+                or asyncio.get_running_loop().time() - recent[2]
+                >= PAIRING_COMMAND_GRACE_SECONDS
+            ):
+                recent_state = None
+            else:
+                recent_state = recent[1]
+            result = await change_accessory_pairing(
+                speaker,
+                start=start,
+                confirmation=call.data.get("confirmation"),
+                still_connected=lambda: (
+                    hass.data.get(DOMAIN, {})
+                    .get(entry_id, {})
+                    .get("speaker") is speaker
+                ),
+                recent_command=recent_state,
+            )
+            if result.endswith("submitted"):
+                recent_pairing_commands[entry_id] = (
+                    speaker,
+                    start,
+                    asyncio.get_running_loop().time(),
+                )
 
     async def handle_start_accessory_pairing(call: ServiceCall) -> None:
         await handle_accessory_pairing(call, start=True)

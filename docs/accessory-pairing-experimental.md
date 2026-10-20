@@ -45,6 +45,26 @@ and suppress redundant state-changing PUTs. The guard recognizes either
 `pairing` (observed in the owner's response) or `pairingMode` (Android DTO).
 Missing or malformed status blocks write.
 
+### Concurrency and status propagation safeguards
+
+Pairing services use a lock per Bose configuration entry, so simultaneous
+Start/Stop requests cannot overlap their status-read/write cycles.
+Reconnection during the status preflight refuses to write to a stale speaker.
+
+After an acknowledged Start or Stop, a 15-second same-speaker grace window
+remembers the requested state. It suppresses duplicate Starts when firmware
+reports delayed status updates, but allows deliberate Stop immediately.
+A new speaker connection invalidates this remembered state. All Start calls
+still require exact confirmation.
+
+This is an **in-memory safety guard**, not a radio-level idempotency guarantee.
+If a speaker accepts a write but the response is lost, its actual state can
+remain uncertain; no retry or automatic pairing occurs.
+
+The generic `bose.send_custom_request` service still permits raw writes. An
+advanced user can bypass these experimental service safeguards intentionally;
+this is not recommended for accessory pairing.
+
 ### No live execution yet
 
 The user already tried Bose Music's normal discovery repeatedly, and the Japan
@@ -60,8 +80,8 @@ registration itself does not start pairing.
 
 - Independent pybose base branch: **130 unit tests passing**.
 - Combined pybose local branch: **153 unit tests passing**.
-- HACS experimental branch: **72 offline tests passing** (read-only diagnostics
-  +14 dedicated start/stop/mock registration scenarios).
+- HACS experimental branch: **78 offline tests passing** (read-only diagnostics
+  +20 dedicated start/stop, confirmation, concurrency and reconnection tests).
 - Simulated no-op behavior on already active/inactive state.
 - Rejection of mismatched confirmation text, unsupported capability and
   malformed pairing state before any PUT.

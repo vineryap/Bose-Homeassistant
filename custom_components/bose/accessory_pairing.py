@@ -7,6 +7,7 @@ No pairing can happen without an explicit service call and confirmation.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from ._pybose import BoseSpeaker
@@ -31,6 +32,8 @@ async def change_accessory_pairing(
     *,
     start: bool,
     confirmation: str | None = None,
+    still_connected: Callable[[], bool] | None = None,
+    recent_command: bool | None = None,
 ) -> str:
     """Start/cancel pairing explicitly, refusing unknown state or capabilities.
 
@@ -49,8 +52,16 @@ async def change_accessory_pairing(
     state = pairing_state(snapshot)
     if state is None:
         raise ValueError("Pairing state unknown; refusing to send accessory write")
-    if state == start:
+    # Firmware may report the *old* state briefly after an acknowledged PUT.
+    # A recent same-speaker command takes precedence only during its short
+    # grace period, to avoid duplicate starts and allow immediate cancellation.
+    effective = recent_command if type(recent_command) is bool else state
+    if effective == start:
         return "Accessory pairing already active" if start else "Accessory pairing already inactive"
+    # A reconnect after the GET makes this speaker object stale. Do not send
+    # a state-changing write to a retired connection.
+    if still_connected is not None and not still_connected():
+        raise ValueError("Bose speaker reconnected during preflight; please retry")
 
     if start:
         await speaker.start_accessory_pairing()

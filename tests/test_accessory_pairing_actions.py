@@ -195,3 +195,134 @@ def test_service_descriptors_require_explicit_confirmation():
     assert services["start_accessory_pairing"]["fields"]["confirmation"]["required"] is True
     assert "start_accessory_pairing" in services
     assert "stop_accessory_pairing" in services
+
+@pytest.fixture
+def pairing_action_harness(monkeypatch):
+    handlers = {}
+
+    class Registry:
+        def async_get(self, device_id):
+            return SimpleNamespace(primary_config_entry="cfg") if device_id == "soundbar" else None
+
+    class Services:
+        def register(self, domain, name, fn, **kwargs):
+            handlers[name] = fn
+
+    monkeypatch.setattr("bose.dr.async_get", lambda hass: Registry())
+    data = {"speaker": FakeAccessorySpeaker(), "speaker_ha_device_id": "soundbar"}
+    hass = SimpleNamespace(services=Services(), data={"bose": {"cfg": data}})
+    setup(hass, {})
+    return handlers, data
+
+
+@pytest.mark.asyncio
+async def test_concurrent_start_is_serialized(pairing_action_harness):
+    import asyncio
+
+    handlers, stored = pairing_action_harness
+    speaker = stored["speaker"]
+    entered, released = asyncio.Event(), asyncio.Event()
+    old_get = speaker.get_accessories
+
+    async def slow_get():
+        entered.set()
+        await released.wait()
+        return await old_get()
+
+    async def starting():
+        speaker.calls.append(("PUT", "/accessories", {"pairing": True}))
+        speaker.state = True
+
+    speaker.get_accessories = slow_get
+    speaker.start_accessory_pairing = starting
+    call = SimpleNamespace(data={"device_id": "soundbar", "confirmation": PAIRING_CONFIRMATION})
+    first = asyncio.create_task(handlers["start_accessory_pairing"](call))
+    await asyncio.wait_for(entered.wait(), 2)
+    second = asyncio.create_task(handlers["start_accessory_pairing"](call))
+    await asyncio.sleep(0)
+    released.set()
+    await asyncio.wait_for(asyncio.gather(first, second), 2)
+    assert len([x for x in speaker.calls if x[0] == "PUT"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_reconnect_during_get_refuses_stale_write(pairing_action_harness):
+    import asyncio
+
+    handlers, stored = pairing_action_harness
+    old = stored["speaker"]
+    entered, released = asyncio.Event(), asyncio.Event()
+    original = old.get_accessories
+
+    async def slow_get():
+        entered.set()
+        await released.wait()
+        return await original()
+
+    old.get_accessories = slow_get
+    call = SimpleNamespace(data={"device_id": "soundbar", "confirmation": PAIRING_CONFIRMATION})
+    task = asyncio.create_task(handlers["start_accessory_pairing"](call))
+    await asyncio.wait_for(entered.wait(), 2)
+    new = FakeAccessorySpeaker()
+    stored["speaker"] = new
+    released.set()
+    with pytest.raises(ValueError, match="reconnected during preflight"):
+        await asyncio.wait_for(task, 2)
+    assert not [x for x in old.calls if x[0] == "PUT"]
+    assert new.calls == []
+    await handlers["start_accessory_pairing"](call)
+    assert new.calls[-1] == ("PUT", "/accessories", {"pairing": True})
+
+
+@pytest.mark.asyncio
+async def test_duplicate_start_is_suppressed_while_device_status_lags(pairing_action_harness):
+    """The device may continue reporting false after it accepted start."""
+    actions, stored = pairing_action_harness
+    speaker = stored["speaker"]
+    call = SimpleNamespace(data={"device_id": "soundbar", "confirmation": PAIRING_CONFIRMATION})
+    await actions["start_accessory_pairing"](call)
+    assert speaker.state is False  # fake simulates firmware notification lag
+    await actions["start_accessory_pairing"](call)
+    assert [x for x in speaker.calls if x[0] == "PUT"] == [
+        ("PUT", "/accessories", {"pairing": True})
+    ]
+
+
+@pytest.mark.asyncio
+async def test_cancel_after_start_is_allowed_despite_stale_false_status(pairing_action_harness):
+    actions, stored = pairing_action_harness
+    speaker = stored["speaker"]
+    await actions["start_accessory_pairing"](
+        SimpleNamespace(data={"device_id": "soundbar", "confirmation": PAIRING_CONFIRMATION})
+    )
+    await actions["stop_accessory_pairing"](
+        SimpleNamespace(data={"device_id": "soundbar"})
+    )
+    assert [x for x in speaker.calls if x[0] == "PUT"] == [
+        ("PUT", "/accessories", {"pairing": True}),
+        ("PUT", "/accessories", {"pairing": False}),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_reconnect_forgets_previous_speaker_pending_command(pairing_action_harness):
+    actions, stored = pairing_action_harness
+    call = SimpleNamespace(data={"device_id": "soundbar", "confirmation": PAIRING_CONFIRMATION})
+    await actions["start_accessory_pairing"](call)
+    replacement = FakeAccessorySpeaker(state=False)
+    stored["speaker"] = replacement
+    await actions["start_accessory_pairing"](call)
+    assert replacement.calls[-1] == ("PUT", "/accessories", {"pairing": True})
+
+
+@pytest.mark.asyncio
+async def test_confirmation_still_required_when_a_start_was_recent(pairing_action_harness):
+    actions, stored = pairing_action_harness
+    good = SimpleNamespace(data={"device_id": "soundbar", "confirmation": PAIRING_CONFIRMATION})
+    await actions["start_accessory_pairing"](good)
+    before = list(stored["speaker"].calls)
+    with pytest.raises(ValueError, match="confirmation"):
+        await actions["start_accessory_pairing"](
+            SimpleNamespace(data={"device_id": "soundbar"})
+        )
+    assert stored["speaker"].calls == before
