@@ -1,3 +1,5 @@
+ > **Additional local experiment:** [Accessory discovery start/cancel services](docs/accessory-pairing-experimental.md) are implemented only on this local development branch, with explicit confirmation and no live verification. The public v1.3.6 release is unchanged.
+
 > **Development note:** New [read-only Bass Module and surround speaker diagnostics](docs/accessory-diagnostics.md) exist only on the local development branch, not the released fork v1.3.6.
 
 > **Temporary Bose Soundbar 700 home-lab testing fork.** This is NOT a released upstream Bose integration. It includes five locally tested pybose changes embedded for compatibility testing. See [LAB_TESTING.md](LAB_TESTING.md) for backup, safe tests, virtual remote and rollback. Do not submit support requests to the upstream maintainer for this experimental version.

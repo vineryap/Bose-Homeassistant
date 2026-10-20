@@ -653,6 +653,29 @@ class BoseSpeaker:
         """Retrieve accessories information."""
         return BR.Accessories(await self._request("/accessories", "GET"))
 
+    async def start_accessory_pairing(self) -> BR.Accessories:
+        """Start Bose bass/surround accessory discovery (state-changing).
+
+        Bose Music uses PUT /accessories with {"pairing": true} at API
+        version 1.0. Discovery may affect existing wireless accessories.
+        This is NOT Bluetooth audio pairing or Universal Remote pairing.
+        Invoke only after an explicit user action; hardware effects have
+        not yet been independently tested.
+        """
+        return BR.Accessories(
+            await self._request("/accessories", "PUT", {"pairing": True})
+        )
+
+    async def stop_accessory_pairing(self) -> BR.Accessories:
+        """Cancel accessory discovery without removing paired accessories.
+
+        Sends Bose Music's PUT /accessories {"pairing": false} request.
+        Exact hardware cancellation behavior remains unverified.
+        """
+        return BR.Accessories(
+            await self._request("/accessories", "PUT", {"pairing": False})
+        )
+
     async def put_accessories(
         self, subs_enabled: Optional[bool] = None, rears_enabled: Optional[bool] = None
     ) -> bool:

@@ -5,7 +5,7 @@ adapted as a nested Python package for integration testing only.
 
 Base: upstream `main` commit `c4fd766`.
 Combined feature source: local `~/dev/pybose` branch
-`local/bose-testing`, commit `9ff76bb`.
+`local/bose-testing`, commit `9357858`.
 
 Included patches:
 - Token redaction in WebSocket debug logs
@@ -13,6 +13,7 @@ Included patches:
 - Public audio format getter
 - Midrange and systemSurroundLevel audio setting support
 - Read-only firmware update status
+- Opt-in Bose accessory discovery start/cancel requests (not live-tested)
 
 The only additional source modification is `from .BoseAuth import BoseAuth`
 in `BoseSpeaker.py`, needed for this nested import namespace.

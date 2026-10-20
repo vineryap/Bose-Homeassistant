@@ -23,6 +23,7 @@ from homeassistant.exceptions import (
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 
 from . import config_flow
+from .accessory_pairing import change_accessory_pairing
 from .const import (
     _LOGGER,
     DOMAIN,
@@ -207,6 +208,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     )
 
     # Store the speaker object separately
+    hass.data[DOMAIN][config_entry.entry_id]["speaker_ha_device_id"] = speaker_device.id
     hass.data[DOMAIN][config_entry.entry_id]["speaker"] = speaker
     hass.data[DOMAIN][config_entry.entry_id]["system_info"] = system_info
     hass.data[DOMAIN][config_entry.entry_id]["capabilities"] = capabilities
@@ -545,6 +547,34 @@ def setup(hass: HomeAssistant, config: ConfigEntry) -> bool:
 
         await speaker.remove_bluetooth_sink_device(mac_address)
 
+    async def handle_accessory_pairing(call: ServiceCall, *, start: bool) -> None:
+        # Service actions target the soundbar's HA device, not the accessory.
+        ha_device_id = call.data.get("device_id")
+        if not isinstance(ha_device_id, str) or not ha_device_id:
+            raise ValueError("Select a Bose soundbar device")
+        device_registry = dr.async_get(hass)
+        device_entry = device_registry.async_get(ha_device_id)
+        if device_entry is None or device_entry.primary_config_entry is None:
+            raise ValueError("Bose soundbar device not found")
+        stored = hass.data.get(DOMAIN, {}).get(device_entry.primary_config_entry)
+        if not isinstance(stored, dict) or not stored.get("speaker"):
+            raise ValueError("Bose soundbar is not connected")
+        # A bass module or rear-speaker HA device shares the Bose config entry.
+        # Do not silently translate an accessory target into a soundbar write.
+        if stored.get("speaker_ha_device_id") != ha_device_id:
+            raise ValueError("Select the soundbar device, not a Bose accessory")
+        await change_accessory_pairing(
+            stored["speaker"],
+            start=start,
+            confirmation=call.data.get("confirmation"),
+        )
+
+    async def handle_start_accessory_pairing(call: ServiceCall) -> None:
+        await handle_accessory_pairing(call, start=True)
+
+    async def handle_stop_accessory_pairing(call: ServiceCall) -> None:
+        await handle_accessory_pairing(call, start=False)
+
     hass.services.register(
         DOMAIN,
         "remove_bluetooth_device",
@@ -555,6 +585,16 @@ def setup(hass: HomeAssistant, config: ConfigEntry) -> bool:
         "send_custom_request",
         handle_custom_request,
         supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.register(
+        DOMAIN,
+        "start_accessory_pairing",
+        handle_start_accessory_pairing,
+    )
+    hass.services.register(
+        DOMAIN,
+        "stop_accessory_pairing",
+        handle_stop_accessory_pairing,
     )
     return True
 

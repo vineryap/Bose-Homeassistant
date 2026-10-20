@@ -14,6 +14,8 @@ def test_bundled_bose_speaker_exports_local_methods():
         "get_universal_remote_pairing_status",
         "start_universal_remote_pairing",
         "stop_universal_remote_pairing",
+        "start_accessory_pairing",
+        "stop_accessory_pairing",
     ):
         assert callable(getattr(BoseSpeaker, name))
 

@@ -98,3 +98,38 @@ set_bluetooth_pairable:
         device:
           integration: bose
       description: 'The Bose device to enable pairing mode on.'
+
+start_accessory_pairing:
+  name: Start Accessory Pairing (Experimental)
+  description: >-
+    Starts Bose bass/surround accessory discovery. This is an experimental
+    implementation; it may interrupt existing wireless surrounds. Requires
+    an explicit typed confirmation, not triggered automatically on startup.
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: bose
+      description: The Bose soundbar that manages accessory speakers.
+    confirmation:
+      required: true
+      example: 'I UNDERSTAND THIS MAY INTERRUPT SURROUND SPEAKERS'
+      selector:
+        text:
+      description: >-
+        Must exactly equal "I UNDERSTAND THIS MAY INTERRUPT SURROUND SPEAKERS".
+        Only test during a quiet time and after preserving your current setup.
+
+stop_accessory_pairing:
+  name: Stop Accessory Pairing (Experimental)
+  description: >-
+    Cancel an active Bose bass/surround accessory-discovery session. Does not
+    unpair or disband accessories. Refuses to write if pairing status is unknown.
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: bose
+      description: The Bose soundbar that manages accessory speakers.
