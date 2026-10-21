@@ -1,9 +1,9 @@
 # Experimental Bose bass/surround accessory discovery
 
-**Status:** LOCAL DEVELOPMENT ONLY. This feature lives on the local branch
-`feature/accessory-pairing-experimental` (based on the read-only diagnostics branch).
-**It is not in public HACS release `v1.3.6`.** The published version and the user's
-installed Home Assistant are unchanged.
+**Status:** Experimentally implemented and offline-tested on branch
+`feature/accessory-pairing-experimental`. Included in the **v1.3.7 owner-testing release**;
+not in old v1.3.6. The feature does not start pairing automatically and has
+**never been tested against the live Soundbar 700 or Bass Module 700**.
 
 ## Proven command format, unverified effect
 
@@ -88,6 +88,5 @@ registration itself does not start pairing.
 - Mocked existing connected rears; no unintended automatic requests.
 - No live hardware, Bose cloud, or installed Home Assistant touched.
 
-For production, prefer upstream separate pybose PRs, then an optional released
-HACS integration update; do not put this experimental branch into production
-before an owner-approved test.
+Use this only for owner-approved experimental testing. Prefer separate upstream
+pybose PRs and a released dependency before any general-purpose deployment.

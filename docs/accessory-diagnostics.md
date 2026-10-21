@@ -1,6 +1,6 @@
 # Bose Bass Module / Surround Speakers diagnostics (development branch)
 
-This feature is developed on the **local** branch `feature/accessory-diagnostics-readonly`; it is **not part of the published v1.3.6 HACS release**. Do not expect the entities on a running v1.3.6 installation.
+These read-only diagnostics are included in the owner-testing HACS fork **v1.3.7**. They were first developed on branch `feature/accessory-diagnostics-readonly`; older v1.3.6 installations do not expose them.
 
 ## What was added
 

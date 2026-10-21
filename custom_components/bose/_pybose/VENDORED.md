@@ -14,6 +14,7 @@ Included patches:
 - Midrange and systemSurroundLevel audio setting support
 - Read-only firmware update status
 - Opt-in Bose accessory discovery start/cancel requests (not live-tested)
+- Optical auto-wake read/opt-in toggle helpers (live behavior unverified)
 
 The only additional source modification is `from .BoseAuth import BoseAuth`
 in `BoseSpeaker.py`, needed for this nested import namespace.

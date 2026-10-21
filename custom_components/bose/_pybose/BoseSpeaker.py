@@ -428,6 +428,18 @@ class BoseSpeaker:
         ]
         return endpoint in endpoints
 
+    async def get_optical_auto_wake(self) -> Dict[str, Any]:
+        """Read optical auto-wake setting, if supported by the soundbar."""
+        return await self._request("/system/power/mode/opticalAutoWake", "GET")
+
+    async def set_optical_auto_wake(self, enabled: bool) -> Dict[str, Any]:
+        """Opt-in setting change: Bose Music PUT {"enabled": boolean}."""
+        if type(enabled) is not bool:
+            raise ValueError("enabled must be a boolean")
+        return await self._request(
+            "/system/power/mode/opticalAutoWake", "PUT", {"enabled": enabled}
+        )
+
     async def get_system_info(self) -> BR.SystemInfo:
         """Retrieve system information."""
         return BR.SystemInfo(await self._request("/system/info", "GET"))

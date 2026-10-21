@@ -228,6 +228,12 @@
             },
             "accessories_pairing_diagnostic": {
                 "name": "Accessory Pairing Status"
+            },
+            "soundbar_audio_mode_diagnostic": {
+                "name": "Soundbar Audio Mode"
+            },
+            "soundbar_update_diagnostic": {
+                "name": "Soundbar Firmware Update Status"
             }
         },
         "switch": {
@@ -239,6 +245,9 @@
             },
             "subs": {
                 "name": "Subwoofer"
+            },
+            "optical_auto_wake": {
+                "name": "Optical Auto-Wake"
             }
         }
     },

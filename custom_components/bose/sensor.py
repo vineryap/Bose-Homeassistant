@@ -17,6 +17,7 @@ from .bose.battery import BoseBatteryBase
 from .bose.network import BoseNetworkBase
 from .bose.wifi import BoseWifiBase
 from .accessory_diagnostics import BoseAccessoryDiagnosticSensor
+from .soundbar_diagnostics import BoseSoundbarStatusSensor
 from .const import _LOGGER, DOMAIN
 from .entity import BoseBaseEntity
 
@@ -31,6 +32,17 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
     entities = []
+
+    status_entities = [
+        BoseSoundbarStatusSensor(speaker, mode)
+        for mode, capability in (
+            ("audio_mode", "/audio/mode"),
+            ("update", "/system/update/status"),
+        )
+        if speaker.has_capability(capability)
+    ]
+    if status_entities:
+        async_add_entities(status_entities, update_before_add=True)
 
     # The integration already fetched /accessories during setup. Reuse its
     # snapshot: no additional live reads and, crucially, no pairing writes.

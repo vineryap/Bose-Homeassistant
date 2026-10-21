@@ -11,6 +11,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .optical_auto_wake import BoseOpticalAutoWakeSwitch
 from .const import _LOGGER, DOMAIN
 from .entity import BoseBaseEntity
 
@@ -28,6 +29,11 @@ async def async_setup_entry(
     accessories = hass.data[DOMAIN][config_entry.entry_id]["accessories"]
 
     entities: list[SwitchEntity] = []
+    if speaker.has_capability("/system/power/mode/opticalAutoWake"):
+        async_add_entities(
+            [BoseOpticalAutoWakeSwitch(speaker)],
+            update_before_add=True,
+        )
     if speaker.has_capability("/system/power/timeouts"):
         entities.append(
             BoseStandbySettingSwitch(speaker, system_info, config_entry, hass)

@@ -2,10 +2,13 @@
 
 Test fork: https://github.com/vineryap/Bose-Homeassistant
 Original: https://github.com/cavefire/Bose-Homeassistant
-Integration version: 1.3.6.
+Integration version: 1.3.7.
 
-This fork BUNDLES the combined locally tested pybose source at commit 9ff76bb in custom_components/bose/_pybose, ensuring Home Assistant actually uses all five changes:
-token log redaction, physical remote pairing methods, audio format getter, midrange/surround options, and read-only firmware update status. The normal upstream package dependency is removed to avoid silently importing the unmodified PyPI package.
+This fork BUNDLES locally tested pybose source at commit 36b1df6 in custom_components/bose/_pybose:
+token log redaction, physical remote pairing helpers, audio format getter, extended audio settings, read-only firmware update status, opt-in accessory pairing, and optical auto-wake read/write helpers.
+The normal upstream pybose pip dependency is removed to avoid loading its unmodified version.
+
+**New HACS features since v1.3.6:** three read-only accessory connection/pairing sensors; explicit and confirmation-gated accessory pairing start/stop services (not hardware-tested); a read-only Soundbar Audio Mode sensor, a read-only Firmware Update Status sensor; and an explicit Optical Auto-Wake switch. Optical auto-wake is not changed on install or restart. No firmware update/start action is exposed by these new sensors.
 
 This is a temporary test build, not an upstream release or cloud-independent Bose authentication.
 
@@ -14,7 +17,7 @@ This is a temporary test build, not an upstream release or cloud-independent Bos
 1. Create a FULL Home Assistant backup from Settings > System > Backups and download it. Record your existing Bose integration version and media_player entity IDs. Prefer a time the soundbar is not actively being used.
 2. In HACS, go to Custom repositories and add https://github.com/vineryap/Bose-Homeassistant as category Integration.
 3. The fork uses the SAME domain 'bose' as the upstream custom integration. You CANNOT run both in one HA. If HACS reports a duplicate, remove the UPSTREAM HACS installation/repository first (do not delete the Bose device/configuration entry from Devices & Services), then install the fork.
-4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.6 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
+4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.7 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
 5. Restart Home Assistant. Check Settings > Devices & Services > Bose, existing media_player and Bose entities, then Settings > System > Logs for errors. Normal connection/auth may use Bose cloud services for token refresh.
 
 If HACS will not install the fork due to version/source conflicts, an alternative after a FULL BACKUP is to replace the ENTIRE /config/custom_components/bose folder with custom_components/bose from this fork, restart, and inspect logs. Do not mix old/new files.
@@ -48,4 +51,4 @@ Restore the saved /config/custom_components/bose folder or full Home Assistant b
 
 ## Validation
 
-This fork passed 49 offline integration tests using Home Assistant 2026.10.1 and its own bundled pybose source. The five combined pybose changes passed 148 offline unit tests separately. Neither proves compatibility until YOU explicitly run the selected read-only tests.
+This version passed **90 offline HACS integration tests** and its combined bundled pybose version passed **163 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.

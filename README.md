@@ -1,8 +1,8 @@
- > **Additional local experiment:** [Accessory discovery start/cancel services](docs/accessory-pairing-experimental.md) are implemented only on this local development branch, with explicit confirmation and no live verification. The public v1.3.6 release is unchanged.
-
-> **Development note:** New [read-only Bass Module and surround speaker diagnostics](docs/accessory-diagnostics.md) exist only on the local development branch, not the released fork v1.3.6.
-
-> **Temporary Bose Soundbar 700 home-lab testing fork.** This is NOT a released upstream Bose integration. It includes five locally tested pybose changes embedded for compatibility testing. See [LAB_TESTING.md](LAB_TESTING.md) for backup, safe tests, virtual remote and rollback. Do not submit support requests to the upstream maintainer for this experimental version.
+> **Owner test fork v1.3.7 (EXPERIMENTAL).** This is not an upstream Bose integration release. It bundles separately developed and offline-tested `pybose` changes for Soundbar 700 testing.
+>
+> **New in v1.3.7:** [Read-only bass/rear accessory diagnostics](docs/accessory-diagnostics.md), [experimental accessory discovery actions](docs/accessory-pairing-experimental.md), [optical auto-wake configuration, audio mode and firmware status](docs/soundbar-status-v137.md). Pairing starts **only** when an operator calls the explicit service with a typed confirmation; it could affect existing wireless surrounds.
+>
+> Read [LAB_TESTING.md](LAB_TESTING.md) and back up Home Assistant before installing. A complete digital TV/IR remote via `/injectKey` is **not** implemented.
 
 # Bose Homeassistant
 
