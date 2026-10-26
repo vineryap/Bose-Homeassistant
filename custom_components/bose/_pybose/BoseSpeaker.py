@@ -708,9 +708,16 @@ class BoseSpeaker:
         return BR.AudioMode(await self._request("/audio/mode", "GET"))
 
     async def set_audio_mode(self, mode: str) -> bool:
-        """Set the audio mode."""
-        result = await self._request("/audio/mode", "POST", {"value": mode})
-        return result.get("value") == mode
+        """Select an audio mode advertised by the speaker.
+
+        Original Bose Music uses PUT /audio/mode with {"value": <mode>}.
+        Supported mode values are firmware dependent; callers must obtain
+        and respect GET /audio/mode properties.supportedValues.
+        """
+        if not isinstance(mode, str) or not mode or len(mode) > 64:
+            raise ValueError("mode must be a nonempty short string")
+        result = await self._request("/audio/mode", "PUT", {"value": mode})
+        return isinstance(result, dict) and result.get("value") == mode
 
     async def get_dual_mono_setting(self) -> BR.DualMonoSettings:
         """Retrieve the dual mono setting."""

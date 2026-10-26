@@ -26,6 +26,25 @@ def test_lab_manifest_does_not_pull_stale_pybose_from_pypi():
     manifest = json.loads(
         (Path(__file__).resolve().parents[1] / "custom_components/bose/manifest.json").read_text()
     )
-    assert manifest["version"] == "1.3.7"
+    assert manifest["version"] == "1.3.8"
     assert not any(req.lower().startswith("pybose") for req in manifest["requirements"])
     assert (Path(__file__).resolve().parents[1] / "custom_components/bose/_pybose/LICENSE").exists()
+
+
+async def test_bundled_audio_mode_setter_uses_bose_music_put():
+    from bose._pybose.BoseAuth import BoseAuth
+
+    auth = BoseAuth()
+    auth.set_access_token("fake-access", "fake-refresh", "fake-person")
+    speaker = BoseSpeaker(bose_auth=auth, host="example.invalid", device_id="fake")
+    requests = []
+
+    async def pretend_request(resource, verb, body=None, **kwargs):
+        requests.append((resource, verb, body))
+        return {"value": body["value"]}
+
+    speaker._request = pretend_request
+    assert await speaker.set_audio_mode("DIALOG") is True
+    assert requests == [
+        ("/audio/mode", "PUT", {"value": "DIALOG"})
+    ]

@@ -102,9 +102,9 @@
       "audio_mode": {
         "name": "Audio Mode",
         "state": {
-          "dialog": "dialog",
-          "dynamic_dialog": "dynamic_dialog",
-          "normal": "normal"
+          "dialog": "Dialogue",
+          "dynamic_dialog": "Dynamic Dialogue",
+          "normal": "Normal"
         }
       },
       "cec_settings": {
@@ -116,7 +116,8 @@
           "option3": "Option 3 (remote does not power on TV)",
           "option4": "Option 4 (TV no sound via soundbar)",
           "option5": "Option 5 (TV no sound)",
-          "option6": "Option 6 (soundbar stays on)"
+          "option6": "Option 6 (soundbar stays on)",
+          "option7": "Option 7"
         }
       },
       "dual_mono": {

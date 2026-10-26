@@ -1,6 +1,8 @@
-> **Owner test fork v1.3.7 (EXPERIMENTAL).** This is not an upstream Bose integration release. It bundles separately developed and offline-tested `pybose` changes for Soundbar 700 testing.
+> **Owner test fork v1.3.8 (EXPERIMENTAL).** This is not an upstream Bose integration release.
 >
-> **New in v1.3.7:** [Read-only bass/rear accessory diagnostics](docs/accessory-diagnostics.md), [experimental accessory discovery actions](docs/accessory-pairing-experimental.md), [optical auto-wake configuration, audio mode and firmware status](docs/soundbar-status-v137.md). Pairing starts **only** when an operator calls the explicit service with a typed confirmation; it could affect existing wireless surrounds.
+> **Fixed in v1.3.8:** Dialogue/Audio Mode changes use Bose Music's confirmed PUT protocol. Select choices survive partial status updates; unsupported mode changes are refused, and CEC Option 7 now has a label.
+>
+> **Introduced in v1.3.7:** [Read-only bass/rear accessory diagnostics](docs/accessory-diagnostics.md), [experimental accessory discovery actions](docs/accessory-pairing-experimental.md), [optical auto-wake configuration, audio mode and firmware status](docs/soundbar-status-v137.md). Pairing starts **only** when an operator calls the explicit service with a typed confirmation; it could affect existing wireless surrounds.
 >
 > Read [LAB_TESTING.md](LAB_TESTING.md) and back up Home Assistant before installing. A complete digital TV/IR remote via `/injectKey` is **not** implemented.
 

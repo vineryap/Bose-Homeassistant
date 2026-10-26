@@ -15,6 +15,7 @@ Included patches:
 - Read-only firmware update status
 - Opt-in Bose accessory discovery start/cancel requests (not live-tested)
 - Optical auto-wake read/opt-in toggle helpers (live behavior unverified)
+- Bose Music-compatible PUT /audio/mode setter, used by existing Audio Mode selector
 
 The only additional source modification is `from .BoseAuth import BoseAuth`
 in `BoseSpeaker.py`, needed for this nested import namespace.

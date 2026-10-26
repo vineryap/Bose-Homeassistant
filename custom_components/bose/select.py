@@ -104,31 +104,45 @@ class BoseBaseSelect(BoseBaseEntity, SelectEntity):
         hass.async_create_task(self.async_update())
 
     async def async_select_option(self, option: str) -> None:
-        """Change the audio mode on the speaker."""
+        """Select only an option advertised for this device."""
+        if not self.available or option not in self._attr_options:
+            raise ValueError("Bose audio option is unavailable or unsupported")
+        if option == self.current_option:
+            return
 
-        for real_option, huminzed_option in HUMINZED_OPTIONS.items():
-            if option == huminzed_option:
-                option = real_option
-                break
-
-        await getattr(self.speaker, self._set_method)(option)
+        original_option = next(
+            (key for key, value in HUMINZED_OPTIONS.items() if value == option),
+            option,
+        )
+        result = await getattr(self.speaker, self._set_method)(original_option)
+        if result is False:
+            raise ValueError("Bose rejected the requested audio option")
+        self._attr_current_option = option
+        if self.hass is not None and self.entity_id is not None:
+            self.async_write_ha_state()
 
     def _parse_audio_mode(self, data, mode_type):
-        self._attr_available = True
+        if not isinstance(data, dict):
+            return
         selected_audio = data.get(self._value_key)
-        supported = data.get("properties", {}).get(self._supported_key, [])
-        self._attr_options = [
-            str(HUMINZED_OPTIONS.get(option, option))
-            for option in supported
-            if option is not None
-        ]
+        if not isinstance(selected_audio, str) or not selected_audio:
+            return
 
-        if HUMINZED_OPTIONS.get(selected_audio):
-            self._attr_current_option = HUMINZED_OPTIONS.get(selected_audio)
-        else:
-            self._attr_current_option = selected_audio
+        properties = data.get("properties")
+        if isinstance(properties, dict) and self._supported_key in properties:
+            supported = properties[self._supported_key]
+            if isinstance(supported, list):
+                self._attr_options = [
+                    HUMINZED_OPTIONS.get(value, value)
+                    for value in supported
+                    if isinstance(value, str) and value
+                ]
 
-        if self.hass:
+        self._attr_available = True
+        self._attr_current_option = HUMINZED_OPTIONS.get(
+            selected_audio, selected_audio
+        )
+        if self.hass is not None and self.entity_id is not None:
             self.async_write_ha_state()
 
     def _parse_message(self, data):
