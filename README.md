@@ -1,4 +1,6 @@
-> **Owner test fork v1.3.8 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+> **Owner test fork v1.3.9 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+>
+> **Fixed in v1.3.9:** Official Bose CEC descriptions for Options 2–7; preserving bass/rear enablement when toggling the other speaker; ignoring incomplete accessory and slider notifications; avoiding duplicate audio writes after errors.
 >
 > **Fixed in v1.3.8:** Dialogue/Audio Mode changes use Bose Music's confirmed PUT protocol. Select choices survive partial status updates; unsupported mode changes are refused, and CEC Option 7 now has a label.
 >

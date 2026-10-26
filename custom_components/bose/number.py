@@ -1,6 +1,7 @@
 """Support for Bose adjustable sound settings (sliders)."""
 
 import asyncio
+import math
 import re
 
 from ._pybose.BoseResponse import Audio
@@ -119,6 +120,10 @@ class BoseAudioSlider(BoseBaseEntity, NumberEntity):
         self.coordinator = coordinator
         self._option = option
         self._path = f"/audio/{option}"
+        # This entity exists only after a successful GET during setup. For
+        # devices omitting working resources from capabilities, that read
+        # gives us evidence to permit an explicit setter without cap check.
+        self._probed_unadvertised = not speaker.has_capability(self._path)
         self._attr_translation_key = translation_key(option)
         self._cf_unique_id = option
 
@@ -138,16 +143,21 @@ class BoseAudioSlider(BoseBaseEntity, NumberEntity):
             self._parse_audio(Audio(data.get("body") or {}))
 
     def _parse_audio(self, data: Audio) -> None:
-        """Store the value and the range the speaker reports alongside it."""
-        self._attr_native_value = data.get("value", 0)
-
-        properties = data.get("properties") or {}
-        if (minimum := properties.get("min")) is not None:
-            self._attr_native_min_value = minimum
-        if (maximum := properties.get("max")) is not None:
-            self._attr_native_max_value = maximum
-        if step := properties.get("step"):
-            self._attr_native_step = step
+        """Ignore partial notifications that omit a valid numeric value."""
+        if not isinstance(data, dict) or type(data.get("value")) is not int:
+            return
+        self._attr_native_value = data["value"]
+        properties = data.get("properties")
+        if isinstance(properties, dict):
+            minimum = properties.get("min")
+            maximum = properties.get("max")
+            step = properties.get("step")
+            if type(minimum) is int:
+                self._attr_native_min_value = minimum
+            if type(maximum) is int:
+                self._attr_native_max_value = maximum
+            if type(step) is int and step > 0:
+                self._attr_native_step = step
 
         self._attr_available = True
         self._write_state()
@@ -183,31 +193,37 @@ class BoseAudioSlider(BoseBaseEntity, NumberEntity):
         self._parse_audio(audio)
 
     async def async_set_native_value(self, value: float) -> None:
-        """Set the new value for the setting."""
-        try:
-            await self.speaker.set_audio_setting(self._option, int(value))
-        except Exception:  # noqa: BLE001
-            _LOGGER.debug(
-                "pybose rejected writing %s, asking the speaker directly",
-                self._option,
-                exc_info=True,
-            )
-            try:
-                await self.speaker._request(  # noqa: SLF001
-                    self._path,
-                    "POST",
-                    {"value": int(value)},
-                    checkCapabilities=False,
-                )
-            except Exception as e:
-                _LOGGER.error(
-                    "Failed to set audio setting %s to %s: %s",
-                    self._option,
-                    value,
-                    e,
-                )
-                raise
+        """Apply a valid slider value once; never retry a failed write blindly.
 
-        self._attr_native_value = int(value)
+        The previous implementation retried *any* pybose error with a direct
+        POST, even timeouts where the speaker might already have applied the
+        first write. This could cause duplicate commands and bypass firmware
+        capability checks during transient connection failures.
+        """
+        if (
+            type(value) not in (float, int)
+            or not math.isfinite(value)
+            or int(value) != value
+            or not self.native_min_value <= value <= self.native_max_value
+        ):
+            raise ValueError("Bose audio value is invalid or out of range")
+        requested = int(value)
+        if self._probed_unadvertised:
+            # Setup first successfully probed the exact resource. Use the
+            # known compatibility path once; never retry on failure.
+            response = await self.speaker._request(  # noqa: SLF001
+                self._path,
+                "POST",
+                {"value": requested},
+                checkCapabilities=False,
+            )
+        else:
+            response = await self.speaker.set_audio_setting(
+                self._option, requested
+            )
+        if isinstance(response, dict) and type(response.get("value")) is int:
+            if response["value"] != requested:
+                raise ValueError("Bose did not confirm the audio setting")
+        self._attr_native_value = requested
         self._attr_available = True
         self._write_state()

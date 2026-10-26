@@ -84,25 +84,44 @@ class BoseAccessorySwitch(BoseBaseEntity, SwitchEntity):
 
         self.speaker.attach_receiver(self._parse_message)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the speaker feature."""
-        await self.speaker.put_accessories(**{f"{self._attribute}_enabled": True})
+    async def _change_accessory(self, enabled: bool) -> None:
+        """Write one setting and update the UI only after acknowledgement."""
+        result = await self.speaker.put_accessories(
+            **{f"{self._attribute}_enabled": enabled}
+        )
+        if result is False:
+            raise ValueError("Bose refused accessory enablement change")
+        self._attr_is_on = enabled
+        self._attr_available = True
         self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable the selected accessory without changing the other one."""
+        await self._change_accessory(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the speaker feature."""
-        await self.speaker.put_accessories(**{f"{self._attribute}_enabled": False})
-        self.async_write_ha_state()
+        """Disable the selected accessory without changing the other one."""
+        await self._change_accessory(False)
 
     def _parse_message(self, data):
-        """Parse the message from the speaker."""
-        if data.get("header", {}).get("resource") == "/accessories":
-            self._parse_accessories(Accessories(data.get("body")))
+        """Ignore partial or malformed accessory event bodies."""
+        if not isinstance(data, dict):
+            return
+        header = data.get("header")
+        if isinstance(header, dict) and header.get("resource") == "/accessories":
+            self._parse_accessories(data.get("body"))
 
     def _parse_accessories(self, data: Accessories):
-        """Parse the accessories data."""
-        enabled = data.get("enabled", {}) if data else {}
-        self._attr_is_on = enabled.get(self._attribute, False) if enabled else False
+        """Only update our own explicitly present boolean state."""
+        if not isinstance(data, dict):
+            return
+        enabled = data.get("enabled")
+        if not isinstance(enabled, dict):
+            return
+        state = enabled.get(self._attribute)
+        if type(state) is not bool:
+            return
+        self._attr_is_on = state
         self._attr_available = True
         self.async_write_ha_state()
 

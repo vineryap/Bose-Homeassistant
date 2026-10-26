@@ -74,3 +74,52 @@ async def test_standby_switch_survives_a_failed_update():
     await entity.async_update()
 
     assert not entity.available
+
+
+async def test_accessory_partial_pairing_notification_does_not_disable_speakers():
+    speaker=FakeSpeaker()
+    sub=_accessory_switch(speaker)
+    assert sub.is_on is True
+    speaker.notify("/accessories", {"pairing":True})
+    assert sub.is_on is True
+    speaker.notify("/accessories", {"enabled":{"rears":False}})
+    assert sub.is_on is True
+    speaker.notify("/accessories", {"enabled":{"subs":None}})
+    assert sub.is_on is True
+    speaker.notify("/accessories", {"enabled":{"subs":"false"}})
+    assert sub.is_on is True
+    speaker.notify("/accessories", {"enabled":{"subs":False}})
+    assert sub.is_on is False
+
+
+async def test_accessory_switch_success_updates_state_only_after_ack():
+    speaker=FakeSpeaker()
+    sub=_accessory_switch(speaker)
+    calls=[]
+    async def write(**kwargs):
+        calls.append(kwargs)
+        return True
+    speaker.put_accessories=write
+    await sub.async_turn_off()
+    assert sub.is_on is False
+    await sub.async_turn_on()
+    assert sub.is_on is True
+    assert calls==[{"subs_enabled":False},{"subs_enabled":True}]
+
+
+async def test_accessory_switch_rejection_or_timeout_preserves_state():
+    import pytest
+    speaker=FakeSpeaker()
+    sub=_accessory_switch(speaker)
+    async def refused(**kwargs):
+        return False
+    speaker.put_accessories=refused
+    with pytest.raises(ValueError,match="refused"):
+        await sub.async_turn_off()
+    assert sub.is_on is True
+    async def offline(**kwargs):
+        raise TimeoutError("fake timeout")
+    speaker.put_accessories=offline
+    with pytest.raises(TimeoutError):
+        await sub.async_turn_off()
+    assert sub.is_on is True

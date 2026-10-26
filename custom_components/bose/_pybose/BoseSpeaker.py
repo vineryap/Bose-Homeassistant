@@ -691,11 +691,41 @@ class BoseSpeaker:
     async def put_accessories(
         self, subs_enabled: Optional[bool] = None, rears_enabled: Optional[bool] = None
     ) -> bool:
-        """Update accessories settings."""
-        if subs_enabled is None and rears_enabled is None:
+        """Set accessory enablement, preserving the other accessory's state.
+
+        Bose's PUT /accessories body includes both rears and subs. Sending a
+        null value for one accessory is unsafe when only the other is being
+        toggled, so first read the unchanged state. Never guess on GET failure.
+        """
+        for value in (subs_enabled, rears_enabled):
+            if value is not None and type(value) is not bool:
+                raise ValueError("Accessory enabled state must be boolean")
+
+        if subs_enabled is None or rears_enabled is None:
             accessories = await self.get_accessories()
-            subs_enabled = accessories.enabled.subs  # type: ignore
-            rears_enabled = accessories.enabled.rears  # type: ignore
+            enabled = (
+                accessories.get("enabled")
+                if isinstance(accessories, dict)
+                else getattr(accessories, "enabled", None)
+            )
+            if enabled is None:
+                raise ValueError("Cannot preserve accessory state: missing enabled")
+            for key, value in (("subs", subs_enabled), ("rears", rears_enabled)):
+                if value is not None:
+                    continue
+                existing = (
+                    enabled.get(key) if isinstance(enabled, dict)
+                    else getattr(enabled, key, None)
+                )
+                if type(existing) is not bool:
+                    raise ValueError(
+                        f"Cannot preserve accessory state: {key} status unknown"
+                    )
+                if key == "subs":
+                    subs_enabled = existing
+                else:
+                    rears_enabled = existing
+
         body = {"enabled": {"rears": rears_enabled, "subs": subs_enabled}}
         return await self._request("/accessories", "PUT", body)
 

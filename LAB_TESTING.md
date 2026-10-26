@@ -2,9 +2,9 @@
 
 Test fork: https://github.com/vineryap/Bose-Homeassistant
 Original: https://github.com/cavefire/Bose-Homeassistant
-Integration version: 1.3.8.
+Integration version: 1.3.9.
 
-This fork BUNDLES locally tested pybose source at commit 3d41927 in custom_components/bose/_pybose:
+This fork BUNDLES locally tested pybose source at commit d76c83a in custom_components/bose/_pybose:
 token log redaction, physical remote pairing helpers, audio format getter, extended audio settings, read-only firmware update status, opt-in accessory pairing, and optical auto-wake read/write helpers.
 The normal upstream pybose pip dependency is removed to avoid loading its unmodified version.
 
@@ -17,7 +17,7 @@ This is a temporary test build, not an upstream release or cloud-independent Bos
 1. Create a FULL Home Assistant backup from Settings > System > Backups and download it. Record your existing Bose integration version and media_player entity IDs. Prefer a time the soundbar is not actively being used.
 2. In HACS, go to Custom repositories and add https://github.com/vineryap/Bose-Homeassistant as category Integration.
 3. The fork uses the SAME domain 'bose' as the upstream custom integration. You CANNOT run both in one HA. If HACS reports a duplicate, remove the UPSTREAM HACS installation/repository first (do not delete the Bose device/configuration entry from Devices & Services), then install the fork.
-4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.8 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
+4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.9 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
 5. Restart Home Assistant. Check Settings > Devices & Services > Bose, existing media_player and Bose entities, then Settings > System > Logs for errors. Normal connection/auth may use Bose cloud services for token refresh.
 
 If HACS will not install the fork due to version/source conflicts, an alternative after a FULL BACKUP is to replace the ENTIRE /config/custom_components/bose folder with custom_components/bose from this fork, restart, and inspect logs. Do not mix old/new files.
@@ -51,7 +51,7 @@ Restore the saved /config/custom_components/bose folder or full Home Assistant b
 
 ## Validation
 
-This version passed **98 offline HACS integration tests** and its combined bundled pybose version passed **175 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
+This version passed **117 offline HACS integration tests** and its combined bundled pybose version passed **190 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
 
 
 ## v1.3.8 audio mode test
@@ -67,3 +67,24 @@ The read-only **Soundbar Audio Mode** sensor should agree with the selector.
 
 CEC Option 7 is now labelled; it is only a display improvement. Do not change
 CEC modes solely to test its label.
+
+## v1.3.9 accessory and CEC test
+
+The integration now preserves the *other* accessory's enabled state when
+enabling/disabling the Bass Module or Rear Speakers. It also ignores partial
+accessory notifications lacking the selected enabled flag. This was tested
+with mocked connection state, **not by toggling the user's live surrounds**.
+
+After backup and HACS v1.3.9 restart:
+1. Inspect the [officially sourced CEC Option 2–7 labels](docs/cec-options.md). Merely open the list;
+   **do not change the selected CEC mode**.
+2. Inspect the Bass Module and Rear Speaker enabled switches and the existing
+   connection diagnostic sensors. They should agree with the official Bose app.
+3. If you naturally adjust one audio slider, watch for a responsive state
+   change. The integration now sends one command, and preserves its previous
+   displayed value if a write fails. No extra button press is needed.
+4. **Avoid toggling a working surround or bass module merely to test this
+   release.** The changes are designed to prevent accidental disruption.
+
+Any missing/unknown accessory enabled state now prevents the switch from
+writing rather than guessing a value. The safe rollback remains HACS v1.3.8.

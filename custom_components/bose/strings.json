@@ -112,12 +112,12 @@
         "state": {
           "cec_active": "Default (CEC active)",
           "cec_inactive": "Off (CEC inactive)",
-          "option2": "Option 2 (older TVs)",
-          "option3": "Option 3 (remote does not power on TV)",
-          "option4": "Option 4 (TV no sound via soundbar)",
-          "option5": "Option 5 (TV no sound)",
-          "option6": "Option 6 (soundbar stays on)",
-          "option7": "Option 7"
+          "option2": "Option 2 (older device compatibility)",
+          "option3": "Option 3 (TV power-on command missing)",
+          "option4": "Option 4 (TV audio not sent to soundbar)",
+          "option5": "Option 5 (no audio after HDMI reconnect)",
+          "option6": "Option 6 (TV powers back on)",
+          "option7": "Option 7 (TV power-on and power-off issues)"
         }
       },
       "dual_mono": {

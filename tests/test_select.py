@@ -165,4 +165,4 @@ def test_audio_mode_and_cec_labels_present_for_known_values():
         assert states["normal"] == "Normal"
         assert states["dialog"] == "Dialogue"
         assert states["dynamic_dialog"] == "Dynamic Dialogue"
-        assert data["entity"]["select"]["cec_settings"]["state"]["option7"] == "Option 7"
+        assert data["entity"]["select"]["cec_settings"]["state"]["option7"] == "Option 7 (TV power-on and power-off issues)"
