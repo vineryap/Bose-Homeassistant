@@ -11,6 +11,7 @@ from homeassistant.const import EntityCategory
 from ._pybose import BoseSpeaker
 from .const import _LOGGER
 from .entity import BoseBaseEntity
+from .power_sync import power_sync_field_status
 
 _SAFE_TOKEN = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,47}$")
 
@@ -53,6 +54,8 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
         self._mode = mode
         self._attr_translation_key = f"soundbar_{mode}_diagnostic"
         self._attr_native_value = "unknown"
+        if mode == "power_sync":
+            self._attr_extra_state_attributes = power_sync_field_status(None)
         self._attr_icon = {
             "audio_mode": "mdi:equalizer",
             "update": "mdi:update",
@@ -74,7 +77,16 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
         header = data.get("header")
         if not isinstance(header, dict) or header.get("resource") != self._resource:
             return
-        self._attr_native_value = status_value(data.get("body"), self._mode)
+        body = data.get("body")
+        self._attr_native_value = status_value(body, self._mode)
+        if (
+            self._mode == "power_sync"
+            and isinstance(body, dict)
+            and ("powerOnDevice" in body or "powerOnTv" in body)
+        ):
+            # An enabled-only notification is a partial update. Retain the
+            # schema from the last complete GET instead of misreporting it.
+            self._attr_extra_state_attributes = power_sync_field_status(body)
         self._attr_available = True
         if self.hass is not None and self.entity_id is not None:
             self.async_write_ha_state()
@@ -93,4 +105,6 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
             self._attr_available = False
             return
         self._attr_native_value = status_value(response, self._mode)
+        if self._mode == "power_sync":
+            self._attr_extra_state_attributes = power_sync_field_status(response)
         self._attr_available = True

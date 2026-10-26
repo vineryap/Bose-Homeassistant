@@ -2,7 +2,7 @@
 
 Test fork: https://github.com/vineryap/Bose-Homeassistant
 Original: https://github.com/cavefire/Bose-Homeassistant
-Integration version: 1.3.11.
+Integration version: 1.3.12.
 
 This fork BUNDLES locally tested pybose source at commit b91811f in custom_components/bose/_pybose:
 token log redaction, physical remote pairing helpers, audio format getter, extended audio settings, read-only firmware update status, opt-in accessory pairing, and optical auto-wake read/write helpers.
@@ -17,7 +17,7 @@ This is a temporary test build, not an upstream release or cloud-independent Bos
 1. Create a FULL Home Assistant backup from Settings > System > Backups and download it. Record your existing Bose integration version and media_player entity IDs. Prefer a time the soundbar is not actively being used.
 2. In HACS, go to Custom repositories and add https://github.com/vineryap/Bose-Homeassistant as category Integration.
 3. The fork uses the SAME domain 'bose' as the upstream custom integration. You CANNOT run both in one HA. If HACS reports a duplicate, remove the UPSTREAM HACS installation/repository first (do not delete the Bose device/configuration entry from Devices & Services), then install the fork.
-4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.11 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
+4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.12 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
 5. Restart Home Assistant. Check Settings > Devices & Services > Bose, existing media_player and Bose entities, then Settings > System > Logs for errors. Normal connection/auth may use Bose cloud services for token refresh.
 
 If HACS will not install the fork due to version/source conflicts, an alternative after a FULL BACKUP is to replace the ENTIRE /config/custom_components/bose folder with custom_components/bose from this fork, restart, and inspect logs. Do not mix old/new files.
@@ -51,7 +51,7 @@ Restore the saved /config/custom_components/bose folder or full Home Assistant b
 
 ## Validation
 
-This version passed **168 offline HACS integration tests** and its combined bundled pybose version passed **204 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
+This version passed **176 offline HACS integration tests** and its combined bundled pybose version passed **204 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
 
 
 ## v1.3.8 audio mode test
@@ -136,3 +136,32 @@ Safe initial test:
 
 Restore previous v1.3.10 through HACS if needed. Live PUT behaviour has not
 yet been independently tested, so the new switch remains experimental.
+
+## v1.3.12 Power Sync field diagnostics and Standby Timer naming
+
+**Soundbar Power Sync** retains its Enabled/Disabled diagnostic value.
+Open Home Assistant Developer Tools > States and inspect the corresponding
+sensor attributes (not a raw device/API request).
+
+- `configuration`: complete/incomplete/unknown describes whether the GET
+  provides all required fields for the experimental Power Sync master switch.
+- `enabled_field`, `power_on_device_field`, `power_on_tv_field`:
+  show only boolean/string/missing/null/invalid/unknown. They never expose
+  device identifiers or any raw field values.
+- If the Power Sync switch is disabled and `configuration=incomplete`, the
+  other field-status attributes help identify why. **Do not interpret that
+  result as definitive proof of a missing Bose remote:** the Bose app asks
+  for one, but the response schema alone cannot prove causality.
+- Do not bypass the switch's completeness checks, pair accessories/remotes
+  or change the Power Sync state to collect diagnostics.
+
+The existing `auto_standby` entity is now named **Standby Timer** without
+changing its translation/unique-ID logic. For the Bose Soundbar 700, the
+owner's guide documents standby after 20 minutes without audio/interaction
+and the option to disable this timer in Bose Music. Offline Bose app request
+inspection confirms a boolean PUT /system/power/timeouts payload
+(`noAudio` and `noVideo`), not an arbitrary configurable timer interval.
+On corresponds to the standard inactivity timer; Off corresponds to Never.
+The setter still preserves the separate `noVideo` field.
+
+Bose 700 manual: https://assets.bose.com/content/dam/Bose_DAM/Web/consumer_electronics/global/products/speakers/bose_soundbar_700/pdf/810651_og_soundbar-700_en.pdf

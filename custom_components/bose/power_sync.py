@@ -37,6 +37,43 @@ def read_power_sync(body: Any) -> tuple[bool, str, bool] | None:
     return enabled, device, tv
 
 
+def power_sync_field_status(body: Any) -> dict[str, str]:
+    """Expose presence and types only, never raw identifiers or token data.
+
+    This is diagnostic information, not a remote-pairing judgement. A missing
+    field can mean model restrictions, unpaired hardware, or a partial reply.
+    """
+    if not isinstance(body, dict):
+        return {
+            "configuration": "unknown",
+            "enabled_field": "unknown",
+            "power_on_device_field": "unknown",
+            "power_on_tv_field": "unknown",
+        }
+
+    def label(field: str, expected_type: type) -> str:
+        if field not in body:
+            return "missing"
+        value = body[field]
+        if value is None:
+            return "null"
+        if type(value) is not expected_type:
+            return "invalid"
+        if expected_type is str and len(value) > 1024:
+            return "invalid"
+        return "string" if expected_type is str else "boolean"
+
+    enabled = label("enabled", bool)
+    device = label("powerOnDevice", str)
+    tv = label("powerOnTv", bool)
+    return {
+        "configuration": "complete" if read_power_sync(body) is not None else "incomplete",
+        "enabled_field": enabled,
+        "power_on_device_field": device,
+        "power_on_tv_field": tv,
+    }
+
+
 class BosePowerSyncSwitch(BoseBaseEntity, SwitchEntity):
     """Change only Power Sync enabled, not remote TV/device settings."""
 

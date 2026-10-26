@@ -179,7 +179,7 @@
     },
     "switch": {
       "auto_standby": {
-        "name": "Auto Standby"
+        "name": "Standby Timer"
       },
       "subs": {
         "name": "Subwoofer"

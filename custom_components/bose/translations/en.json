@@ -242,7 +242,7 @@
         },
         "switch": {
             "auto_standby": {
-                "name": "Auto Standby"
+                "name": "Standby Timer"
             },
             "rears": {
                 "name": "Rear Speakers"
