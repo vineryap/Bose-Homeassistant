@@ -18,6 +18,7 @@ def test_bundled_bose_speaker_exports_local_methods():
         "stop_accessory_pairing",
         "get_optical_auto_wake",
         "set_optical_auto_wake",
+        "get_power_sync_status",
     ):
         assert callable(getattr(BoseSpeaker, name))
 
@@ -26,7 +27,7 @@ def test_lab_manifest_does_not_pull_stale_pybose_from_pypi():
     manifest = json.loads(
         (Path(__file__).resolve().parents[1] / "custom_components/bose/manifest.json").read_text()
     )
-    assert manifest["version"] == "1.3.9"
+    assert manifest["version"] == "1.3.10"
     assert not any(req.lower().startswith("pybose") for req in manifest["requirements"])
     assert (Path(__file__).resolve().parents[1] / "custom_components/bose/_pybose/LICENSE").exists()
 

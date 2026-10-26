@@ -1,4 +1,8 @@
-> **Owner test fork v1.3.9 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+> **Owner test fork v1.3.10 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+>
+> **New in v1.3.10:** Read-only Power Sync status diagnostic (only on devices advertising the feature).
+>
+> **Fixed in v1.3.10:** Auto Standby now preserves the existing video timeout and refuses to write when the current timeout values are unknown. Partial timeout notifications no longer make the switch display an incorrect state.
 >
 > **Fixed in v1.3.9:** Official Bose CEC descriptions for Options 2–7; preserving bass/rear enablement when toggling the other speaker; ignoring incomplete accessory and slider notifications; avoiding duplicate audio writes after errors.
 >

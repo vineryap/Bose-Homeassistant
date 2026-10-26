@@ -197,22 +197,52 @@ class BoseStandbySettingSwitch(BoseBaseEntity, SwitchEntity):
         hass.async_create_task(self.async_update())
 
     def _parse_message(self, data):
-        """Parse the message from the speaker."""
-        if data.get("header", {}).get("resource") == "/system/power/timeouts":
-            result: SystemTimeout = data.get("body")
-            self._attr_is_on = result.get("noAudio", False)
+        """Ignore partial timeout updates without an explicit boolean state."""
+        if not isinstance(data, dict):
+            return
+        header = data.get("header")
+        if not isinstance(header, dict) or header.get("resource") != "/system/power/timeouts":
+            return
+        result = data.get("body")
+        if not isinstance(result, dict) or type(result.get("noAudio")) is not bool:
+            return
+        self._attr_is_on = result["noAudio"]
+        self._attr_available = True
+        self.async_write_ha_state()
+
+    async def _change(self, enabled: bool) -> None:
+        """Read both timeout values, then change only the selected setting.
+
+        The underlying endpoint requires both fields, so hard-coding
+        noVideo=False could overwrite an unrelated existing configuration.
+        """
+        timeouts = await self.speaker.get_system_timeout()
+        if not isinstance(timeouts, dict) or any(
+            type(timeouts.get(key)) is not bool for key in ("noAudio", "noVideo")
+        ):
+            raise ValueError("Bose timeout state is unknown; change refused")
+        if timeouts["noAudio"] == enabled:
+            self._attr_is_on = enabled
             self._attr_available = True
             self.async_write_ha_state()
+            return
+        result = await self.speaker.set_system_timeout(
+            enabled, timeouts["noVideo"]
+        )
+        if isinstance(result, dict) and type(result.get("noAudio")) is bool:
+            if result["noAudio"] != enabled:
+                raise ValueError("Bose did not confirm standby timeout change")
+        self._attr_is_on = enabled
+        self._attr_available = True
+        self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the speaker feature."""
-        await self.speaker.set_system_timeout(True, False)
-        self.async_write_ha_state()
+        """Enable standby on no audio, preserving video timeout."""
+        await self._change(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the speaker feature."""
-        await self.speaker.set_system_timeout(False, False)
-        self.async_write_ha_state()
+        """Disable standby on no audio, preserving video timeout."""
+        await self._change(False)
 
     async def async_update(self) -> None:
         """Update the switch state."""
@@ -226,6 +256,10 @@ class BoseStandbySettingSwitch(BoseBaseEntity, SwitchEntity):
                 self._attr_available = False
                 self.async_write_ha_state()
             return
-        self._attr_is_on = timeouts.get("noAudio", False)
+        if not isinstance(timeouts, dict) or type(timeouts.get("noAudio")) is not bool:
+            self._attr_available = False
+            self.async_write_ha_state()
+            return
+        self._attr_is_on = timeouts["noAudio"]
         self._attr_available = True
         self.async_write_ha_state()

@@ -2,9 +2,9 @@
 
 Test fork: https://github.com/vineryap/Bose-Homeassistant
 Original: https://github.com/cavefire/Bose-Homeassistant
-Integration version: 1.3.9.
+Integration version: 1.3.10.
 
-This fork BUNDLES locally tested pybose source at commit d76c83a in custom_components/bose/_pybose:
+This fork BUNDLES locally tested pybose source at commit d8b46ea in custom_components/bose/_pybose:
 token log redaction, physical remote pairing helpers, audio format getter, extended audio settings, read-only firmware update status, opt-in accessory pairing, and optical auto-wake read/write helpers.
 The normal upstream pybose pip dependency is removed to avoid loading its unmodified version.
 
@@ -17,7 +17,7 @@ This is a temporary test build, not an upstream release or cloud-independent Bos
 1. Create a FULL Home Assistant backup from Settings > System > Backups and download it. Record your existing Bose integration version and media_player entity IDs. Prefer a time the soundbar is not actively being used.
 2. In HACS, go to Custom repositories and add https://github.com/vineryap/Bose-Homeassistant as category Integration.
 3. The fork uses the SAME domain 'bose' as the upstream custom integration. You CANNOT run both in one HA. If HACS reports a duplicate, remove the UPSTREAM HACS installation/repository first (do not delete the Bose device/configuration entry from Devices & Services), then install the fork.
-4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.9 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
+4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.10 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
 5. Restart Home Assistant. Check Settings > Devices & Services > Bose, existing media_player and Bose entities, then Settings > System > Logs for errors. Normal connection/auth may use Bose cloud services for token refresh.
 
 If HACS will not install the fork due to version/source conflicts, an alternative after a FULL BACKUP is to replace the ENTIRE /config/custom_components/bose folder with custom_components/bose from this fork, restart, and inspect logs. Do not mix old/new files.
@@ -51,7 +51,7 @@ Restore the saved /config/custom_components/bose folder or full Home Assistant b
 
 ## Validation
 
-This version passed **117 offline HACS integration tests** and its combined bundled pybose version passed **190 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
+This version passed **142 offline HACS integration tests** and its combined bundled pybose version passed **192 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
 
 
 ## v1.3.8 audio mode test
@@ -88,3 +88,23 @@ After backup and HACS v1.3.9 restart:
 
 Any missing/unknown accessory enabled state now prevents the switch from
 writing rather than guessing a value. The safe rollback remains HACS v1.3.8.
+
+## v1.3.10 Power Sync and Standby test
+
+- New **Soundbar Power Sync** diagnostic appears only if this Bose model
+  advertises `/system/power/macro`. It reports only Enabled, Disabled or
+  Unknown. It never sends a power or settings command. This GET has not yet
+  been verified on the owner's hardware; an unavailable or missing sensor is
+  a useful compatibility result, not a reason to force an API request.
+- The existing **Auto Standby** switch continues to control the `noAudio`
+  boolean in `/system/power/timeouts`, not every Bose Music standby timer
+  choice. On a deliberate change, it first reads `noAudio` and `noVideo`,
+  refuses changes if either is unknown and preserves `noVideo`. No
+  automatic setting writes occur on installation or restart.
+- Initial test: update HACS and restart, inspect the Power Sync diagnostic
+  state if present, and verify the Auto Standby switch shows the same
+  enabled/disabled state as before. **Do not toggle Standby or Power Sync
+  just to test this release**. If you naturally adjust Auto Standby later,
+  check that the Bose Music app and HA agree afterwards.
+- Rollback: reinstall prior **v1.3.9** from HACS and restart Home Assistant,
+  or restore the integration backup.
