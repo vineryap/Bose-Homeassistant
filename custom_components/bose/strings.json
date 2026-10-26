@@ -172,6 +172,9 @@
       },
       "soundbar_update_diagnostic": {
         "name": "Soundbar Firmware Update Status"
+      },
+      "soundbar_power_sync_diagnostic": {
+        "name": "Soundbar Power Sync"
       }
     },
     "switch": {

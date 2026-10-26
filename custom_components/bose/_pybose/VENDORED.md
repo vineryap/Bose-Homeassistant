@@ -28,3 +28,5 @@ The original vendor package © its authors; see LICENSE. Neither archived
 Bose binaries nor user data/credentials are included.
 
 - Preserve other accessory enable state on an individual Bass/Rear toggle; refuse writes if that status is missing.
+
+- Read-only Power Sync status getter, no settings write or power changes.

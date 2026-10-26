@@ -428,6 +428,15 @@ class BoseSpeaker:
         ]
         return endpoint in endpoints
 
+    async def get_power_sync_status(self) -> Dict[str, Any]:
+        """Read Power Sync configuration (no control or power action).
+
+        Bose Music maps resource ID 30114 to /system/power/macro.
+        Response schema is known from the app, but GET has not yet been
+        verified on an actual Soundbar 700.
+        """
+        return await self._request("/system/power/macro", "GET")
+
     async def get_optical_auto_wake(self) -> Dict[str, Any]:
         """Read optical auto-wake setting, if supported by the soundbar."""
         return await self._request("/system/power/mode/opticalAutoWake", "GET")

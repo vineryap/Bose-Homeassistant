@@ -38,6 +38,7 @@ async def async_setup_entry(
         for mode, capability in (
             ("audio_mode", "/audio/mode"),
             ("update", "/system/update/status"),
+            ("power_sync", "/system/power/macro"),
         )
         if speaker.has_capability(capability)
     ]

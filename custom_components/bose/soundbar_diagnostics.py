@@ -22,6 +22,11 @@ def status_value(body: Any, mode: str) -> str:
     if mode == "audio_mode":
         value = body.get("value")
         return value if isinstance(value, str) and _SAFE_TOKEN.fullmatch(value) else "unknown"
+    if mode == "power_sync":
+        value = body.get("enabled")
+        if type(value) is bool:
+            return "enabled" if value else "disabled"
+        return "unknown"
     if mode == "update":
         for key in ("status", "state", "phase", "updateState"):
             value = body.get(key)
@@ -43,17 +48,25 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
 
     def __init__(self, speaker: BoseSpeaker, mode: str) -> None:
         BoseBaseEntity.__init__(self, speaker)
-        if mode not in ("audio_mode", "update"):
+        if mode not in ("audio_mode", "update", "power_sync"):
             raise ValueError("Invalid soundbar status kind")
         self._mode = mode
         self._attr_translation_key = f"soundbar_{mode}_diagnostic"
         self._attr_native_value = "unknown"
-        self._attr_icon = "mdi:equalizer" if mode == "audio_mode" else "mdi:update"
+        self._attr_icon = {
+            "audio_mode": "mdi:equalizer",
+            "update": "mdi:update",
+            "power_sync": "mdi:power-settings",
+        }[mode]
         self.speaker.attach_receiver(self._receive)
 
     @property
     def _resource(self) -> str:
-        return "/audio/mode" if self._mode == "audio_mode" else "/system/update/status"
+        return {
+            "audio_mode": "/audio/mode",
+            "update": "/system/update/status",
+            "power_sync": "/system/power/macro",
+        }[self._mode]
 
     def _receive(self, data: Any) -> None:
         if not isinstance(data, dict):
@@ -69,11 +82,12 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
     async def async_update(self) -> None:
         """Read status during initial setup or an explicit user refresh."""
         try:
-            response = (
-                await self.speaker.get_audio_mode()
-                if self._mode == "audio_mode"
-                else await self.speaker.get_system_update_status()
-            )
+            if self._mode == "audio_mode":
+                response = await self.speaker.get_audio_mode()
+            elif self._mode == "power_sync":
+                response = await self.speaker.get_power_sync_status()
+            else:
+                response = await self.speaker.get_system_update_status()
         except Exception:  # noqa: BLE001
             _LOGGER.debug("Bose soundbar status GET failed", exc_info=True)
             self._attr_available = False
