@@ -2,7 +2,7 @@
 
 Test fork: https://github.com/vineryap/Bose-Homeassistant
 Original: https://github.com/cavefire/Bose-Homeassistant
-Integration version: 1.3.12.
+Integration version: 1.3.13.
 
 This fork BUNDLES locally tested pybose source at commit b91811f in custom_components/bose/_pybose:
 token log redaction, physical remote pairing helpers, audio format getter, extended audio settings, read-only firmware update status, opt-in accessory pairing, and optical auto-wake read/write helpers.
@@ -17,7 +17,7 @@ This is a temporary test build, not an upstream release or cloud-independent Bos
 1. Create a FULL Home Assistant backup from Settings > System > Backups and download it. Record your existing Bose integration version and media_player entity IDs. Prefer a time the soundbar is not actively being used.
 2. In HACS, go to Custom repositories and add https://github.com/vineryap/Bose-Homeassistant as category Integration.
 3. The fork uses the SAME domain 'bose' as the upstream custom integration. You CANNOT run both in one HA. If HACS reports a duplicate, remove the UPSTREAM HACS installation/repository first (do not delete the Bose device/configuration entry from Devices & Services), then install the fork.
-4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.12 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
+4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.13 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
 5. Restart Home Assistant. Check Settings > Devices & Services > Bose, existing media_player and Bose entities, then Settings > System > Logs for errors. Normal connection/auth may use Bose cloud services for token refresh.
 
 If HACS will not install the fork due to version/source conflicts, an alternative after a FULL BACKUP is to replace the ENTIRE /config/custom_components/bose folder with custom_components/bose from this fork, restart, and inspect logs. Do not mix old/new files.
@@ -51,7 +51,7 @@ Restore the saved /config/custom_components/bose folder or full Home Assistant b
 
 ## Validation
 
-This version passed **176 offline HACS integration tests** and its combined bundled pybose version passed **204 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
+This version passed **189 offline HACS integration tests** and its combined bundled pybose version passed **204 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
 
 
 ## v1.3.8 audio mode test
@@ -165,3 +165,27 @@ On corresponds to the standard inactivity timer; Off corresponds to Never.
 The setter still preserves the separate `noVideo` field.
 
 Bose 700 manual: https://assets.bose.com/content/dam/Bose_DAM/Web/consumer_electronics/global/products/speakers/bose_soundbar_700/pdf/810651_og_soundbar-700_en.pdf
+
+## v1.3.13 Power Sync unavailable reason and display name
+
+After HACS update and restart, the Power Sync diagnostic should be labelled
+**Soundbar Power Sync Status**, separate from the **Soundbar Power Sync**
+configuration switch. The integration retains the original unique/entity IDs;
+any HA custom display name may override the translated label.
+
+The diagnostic `control_status` attribute reports e.g.
+`missing_power_on_device`; the unavailable switch can also expose
+`unavailable_reason`. Only field names and fixed status tokens are reported,
+never Bose identifiers or response values.
+
+The owner's Soundbar 700 reports `enabled` and `powerOnTv` but does not
+include `powerOnDevice`. Bose Music says Universal Remote pairing is needed
+for Power Sync. This is consistent with, but does not prove, the missing API
+field is caused by unpaired remote hardware.
+
+Do not bypass the Power Sync control checks or pair/reset devices to test.
+The existing `docs/virtual-remote.yaml` can control soundbar power, volume,
+mute, sources and source-dependent playback without a Bose remote. See
+`docs/virtual-remote-protocol-status.md` for the key injection research.
+
+Rollback: v1.3.12.

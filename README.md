@@ -1,4 +1,6 @@
-> **Owner test fork v1.3.12 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+> **Owner test fork v1.3.13 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+>
+> **Improved in v1.3.13:** Fixed the duplicated Soundbar prefix and added a privacy-safe reason why the Power Sync master switch is unavailable. Existing control and remote-pairing safeguards are unchanged.
 >
 > **Improved in v1.3.12:** Soundbar Power Sync diagnostic now shows whether required configuration fields are present, null or invalid, without exposing their values. Auto Standby is now labelled Standby Timer; the Soundbar 700 uses a fixed 20-minute inactivity period rather than user-configurable durations.
 >

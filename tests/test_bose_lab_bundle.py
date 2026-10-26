@@ -28,7 +28,7 @@ def test_lab_manifest_does_not_pull_stale_pybose_from_pypi():
     manifest = json.loads(
         (Path(__file__).resolve().parents[1] / "custom_components/bose/manifest.json").read_text()
     )
-    assert manifest["version"] == "1.3.12"
+    assert manifest["version"] == "1.3.13"
     assert not any(req.lower().startswith("pybose") for req in manifest["requirements"])
     assert (Path(__file__).resolve().parents[1] / "custom_components/bose/_pybose/LICENSE").exists()
 

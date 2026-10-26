@@ -74,6 +74,24 @@ def power_sync_field_status(body: Any) -> dict[str, str]:
     }
 
 
+def power_sync_control_reason(body: Any) -> str:
+    """Short, value-free reason a Power Sync configuration cannot be changed."""
+    if not isinstance(body, dict):
+        return "unknown_response"
+    status = power_sync_field_status(body)
+    if status["configuration"] == "complete":
+        return "ready"
+    for name, field, expected in (
+        ("enabled", "enabled_field", "boolean"),
+        ("power_on_device", "power_on_device_field", "string"),
+        ("power_on_tv", "power_on_tv_field", "boolean"),
+    ):
+        value = status[field]
+        if value != expected:
+            return f"{value}_{name}"
+    return "unknown_response"
+
+
 class BosePowerSyncSwitch(BoseBaseEntity, SwitchEntity):
     """Change only Power Sync enabled, not remote TV/device settings."""
 
@@ -86,6 +104,7 @@ class BosePowerSyncSwitch(BoseBaseEntity, SwitchEntity):
         BoseBaseEntity.__init__(self, speaker)
         self._attr_available = False
         self._attr_is_on = None
+        self._attr_extra_state_attributes = {"unavailable_reason": "unknown_response"}
         self._change_lock = asyncio.Lock()
         self.speaker.attach_receiver(self._receive)
 
@@ -104,39 +123,55 @@ class BosePowerSyncSwitch(BoseBaseEntity, SwitchEntity):
             return
         self._attr_is_on = full_state[0]
         self._attr_available = True
+        self._attr_extra_state_attributes = {}
         self._write()
 
     async def async_update(self) -> None:
+        body = None
+        reason = "unknown_response"
         try:
-            state = read_power_sync(await self.speaker.get_power_sync_status())
+            body = await self.speaker.get_power_sync_status()
+            state = read_power_sync(body)
+            reason = power_sync_control_reason(body)
         except Exception:  # noqa: BLE001
             _LOGGER.debug("Bose Power Sync status GET failed", exc_info=True)
             state = None
+            reason = "read_failed"
         if state is None:
             self._attr_available = False
+            self._attr_extra_state_attributes = {
+                "unavailable_reason": reason
+            }
             self._write()
             return
         self._attr_is_on = state[0]
         self._attr_available = True
+        self._attr_extra_state_attributes = {}
+        self._write()
+
+    def _mark_unavailable(self, reason: str) -> None:
+        self._attr_available = False
+        self._attr_extra_state_attributes = {"unavailable_reason": reason}
         self._write()
 
     async def _change(self, enabled: bool) -> None:
         async with self._change_lock:
             if not self.speaker.has_capability(_RESOURCE):
+                self._mark_unavailable("not_advertised")
                 raise ValueError("Power Sync not advertised by Bose device")
             try:
-                before = read_power_sync(await self.speaker.get_power_sync_status())
+                before_body = await self.speaker.get_power_sync_status()
+                before = read_power_sync(before_body)
             except Exception as exc:
-                self._attr_available = False
-                self._write()
+                self._mark_unavailable("read_failed")
                 raise ValueError("Cannot read Power Sync configuration") from exc
             if before is None:
-                self._attr_available = False
-                self._write()
+                self._mark_unavailable(power_sync_control_reason(before_body))
                 raise ValueError("Incomplete Power Sync configuration; no changes made")
             if before[0] == enabled:
                 self._attr_is_on = enabled
                 self._attr_available = True
+                self._attr_extra_state_attributes = {}
                 self._write()
                 return
 
@@ -150,15 +185,14 @@ class BosePowerSyncSwitch(BoseBaseEntity, SwitchEntity):
             except Exception:
                 # A failed acknowledgement might still have applied a change.
                 # Never retry or claim the UI is synchronized.
-                self._attr_available = False
-                self._write()
+                self._mark_unavailable("write_unconfirmed")
                 raise
             if after != (enabled, before[1], before[2]):
-                self._attr_available = False
-                self._write()
+                self._mark_unavailable("verification_failed")
                 raise ValueError("Power Sync setting could not be verified")
             self._attr_is_on = enabled
             self._attr_available = True
+            self._attr_extra_state_attributes = {}
             self._write()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
