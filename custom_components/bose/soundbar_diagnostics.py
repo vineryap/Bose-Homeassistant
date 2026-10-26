@@ -11,7 +11,7 @@ from homeassistant.const import EntityCategory
 from ._pybose import BoseSpeaker
 from .const import _LOGGER
 from .entity import BoseBaseEntity
-from .power_sync import power_sync_field_status
+from .power_sync import power_sync_control_reason, power_sync_field_status
 
 _SAFE_TOKEN = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,47}$")
 
@@ -55,7 +55,10 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
         self._attr_translation_key = f"soundbar_{mode}_diagnostic"
         self._attr_native_value = "unknown"
         if mode == "power_sync":
-            self._attr_extra_state_attributes = power_sync_field_status(None)
+            self._attr_extra_state_attributes = {
+                **power_sync_field_status(None),
+                "control_status": "unknown_response",
+            }
         self._attr_icon = {
             "audio_mode": "mdi:equalizer",
             "update": "mdi:update",
@@ -86,7 +89,10 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
         ):
             # An enabled-only notification is a partial update. Retain the
             # schema from the last complete GET instead of misreporting it.
-            self._attr_extra_state_attributes = power_sync_field_status(body)
+            self._attr_extra_state_attributes = {
+                **power_sync_field_status(body),
+                "control_status": power_sync_control_reason(body),
+            }
         self._attr_available = True
         if self.hass is not None and self.entity_id is not None:
             self.async_write_ha_state()
@@ -106,5 +112,8 @@ class BoseSoundbarStatusSensor(BoseBaseEntity, SensorEntity):
             return
         self._attr_native_value = status_value(response, self._mode)
         if self._mode == "power_sync":
-            self._attr_extra_state_attributes = power_sync_field_status(response)
+            self._attr_extra_state_attributes = {
+                **power_sync_field_status(response),
+                "control_status": power_sync_control_reason(response),
+            }
         self._attr_available = True
