@@ -437,6 +437,31 @@ class BoseSpeaker:
         """
         return await self._request("/system/power/macro", "GET")
 
+    async def set_power_sync(
+        self, enabled: bool, power_on_device: str, power_on_tv: bool
+    ) -> Dict[str, Any]:
+        """Set the Power Sync master flag while preserving the other fields.
+
+        Bose Music resource 30114 has three mandatory fields. The caller
+        should GET /system/power/macro immediately before invoking this
+        method and pass the unchanged values verbatim. This changes the
+        behaviour of future TV/device power operations. It does not send
+        an immediate power command.
+        """
+        if type(enabled) is not bool or type(power_on_tv) is not bool:
+            raise ValueError("Power Sync flags must be booleans")
+        if not isinstance(power_on_device, str) or len(power_on_device) > 1024:
+            raise ValueError("power_on_device must be a string up to 1024 characters")
+        return await self._request(
+            "/system/power/macro",
+            "PUT",
+            {
+                "enabled": enabled,
+                "powerOnDevice": power_on_device,
+                "powerOnTv": power_on_tv,
+            },
+        )
+
     async def get_optical_auto_wake(self) -> Dict[str, Any]:
         """Read optical auto-wake setting, if supported by the soundbar."""
         return await self._request("/system/power/mode/opticalAutoWake", "GET")

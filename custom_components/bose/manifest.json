@@ -18,7 +18,7 @@
     "zeroconf>=0.141"
   ],
   "ssdp": [],
-  "version": "1.3.10",
+  "version": "1.3.11",
   "zeroconf": [
     "_bose-passport._tcp.local."
   ]

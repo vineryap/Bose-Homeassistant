@@ -5,7 +5,7 @@ adapted as a nested Python package for integration testing only.
 
 Base: upstream `main` commit `c4fd766`.
 Combined feature source: local `~/dev/pybose` branch
-`local/bose-testing`, commit `9357858`.
+`local/bose-testing`, commit `b91811f`.
 
 Included patches:
 - Token redaction in WebSocket debug logs
@@ -30,3 +30,5 @@ Bose binaries nor user data/credentials are included.
 - Preserve other accessory enable state on an individual Bass/Rear toggle; refuse writes if that status is missing.
 
 - Read-only Power Sync status getter, no settings write or power changes.
+
+- Opt-in Power Sync control with official Bose Music three-field PUT; the HACS control verifies a fresh read and resulting state.

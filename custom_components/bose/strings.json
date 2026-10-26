@@ -189,6 +189,9 @@
       },
       "optical_auto_wake": {
         "name": "Optical Auto-Wake"
+      },
+      "power_sync": {
+        "name": "Power Sync"
       }
     },
     "number": {

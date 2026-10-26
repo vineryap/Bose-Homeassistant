@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .optical_auto_wake import BoseOpticalAutoWakeSwitch
+from .power_sync import BosePowerSyncSwitch
 from .const import _LOGGER, DOMAIN
 from .entity import BoseBaseEntity
 
@@ -32,6 +33,11 @@ async def async_setup_entry(
     if speaker.has_capability("/system/power/mode/opticalAutoWake"):
         async_add_entities(
             [BoseOpticalAutoWakeSwitch(speaker)],
+            update_before_add=True,
+        )
+    if speaker.has_capability("/system/power/macro"):
+        async_add_entities(
+            [BosePowerSyncSwitch(speaker)],
             update_before_add=True,
         )
     if speaker.has_capability("/system/power/timeouts"):

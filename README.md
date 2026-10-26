@@ -1,4 +1,6 @@
-> **Owner test fork v1.3.10 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+> **Owner test fork v1.3.11 (EXPERIMENTAL).** This is not an upstream Bose integration release.
+>
+> **New in v1.3.11:** Optional Power Sync master switch. Preserves existing TV/device choices and verifies results with fresh device reads; does not alter settings on startup.
 >
 > **New in v1.3.10:** Read-only Power Sync status diagnostic (only on devices advertising the feature).
 >

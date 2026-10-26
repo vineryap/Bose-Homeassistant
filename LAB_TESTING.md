@@ -2,9 +2,9 @@
 
 Test fork: https://github.com/vineryap/Bose-Homeassistant
 Original: https://github.com/cavefire/Bose-Homeassistant
-Integration version: 1.3.10.
+Integration version: 1.3.11.
 
-This fork BUNDLES locally tested pybose source at commit d8b46ea in custom_components/bose/_pybose:
+This fork BUNDLES locally tested pybose source at commit b91811f in custom_components/bose/_pybose:
 token log redaction, physical remote pairing helpers, audio format getter, extended audio settings, read-only firmware update status, opt-in accessory pairing, and optical auto-wake read/write helpers.
 The normal upstream pybose pip dependency is removed to avoid loading its unmodified version.
 
@@ -17,7 +17,7 @@ This is a temporary test build, not an upstream release or cloud-independent Bos
 1. Create a FULL Home Assistant backup from Settings > System > Backups and download it. Record your existing Bose integration version and media_player entity IDs. Prefer a time the soundbar is not actively being used.
 2. In HACS, go to Custom repositories and add https://github.com/vineryap/Bose-Homeassistant as category Integration.
 3. The fork uses the SAME domain 'bose' as the upstream custom integration. You CANNOT run both in one HA. If HACS reports a duplicate, remove the UPSTREAM HACS installation/repository first (do not delete the Bose device/configuration entry from Devices & Services), then install the fork.
-4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.10 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
+4. Install/redownload the fork. Confirm /config/custom_components/bose/manifest.json shows version 1.3.11 AND /config/custom_components/bose/_pybose/BoseSpeaker.py exists. If either check fails, STOP.
 5. Restart Home Assistant. Check Settings > Devices & Services > Bose, existing media_player and Bose entities, then Settings > System > Logs for errors. Normal connection/auth may use Bose cloud services for token refresh.
 
 If HACS will not install the fork due to version/source conflicts, an alternative after a FULL BACKUP is to replace the ENTIRE /config/custom_components/bose folder with custom_components/bose from this fork, restart, and inspect logs. Do not mix old/new files.
@@ -51,7 +51,7 @@ Restore the saved /config/custom_components/bose folder or full Home Assistant b
 
 ## Validation
 
-This version passed **142 offline HACS integration tests** and its combined bundled pybose version passed **192 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
+This version passed **168 offline HACS integration tests** and its combined bundled pybose version passed **204 offline unit tests**. These are mock-only checks, not proof of any real Soundbar 700 or Bass Module 700 API response. No automatic pairing or radio changes were performed.
 
 
 ## v1.3.8 audio mode test
@@ -108,3 +108,31 @@ writing rather than guessing a value. The safe rollback remains HACS v1.3.8.
   check that the Bose Music app and HA agree afterwards.
 - Rollback: reinstall prior **v1.3.9** from HACS and restart Home Assistant,
   or restore the integration backup.
+
+## v1.3.11 Power Sync master switch test
+
+The existing read-only Soundbar Power Sync diagnostic was already
+hardware-verified in v1.3.10: it displays Disabled and matches Bose Music.
+This release adds a distinct **Power Sync** configuration switch.
+
+Power Sync affects how the Bose system handles power control of the TV and
+connected devices. The master switch uses the official three-field request
+shape and leaves the other two settings unchanged. It never writes on
+installation, reload or restart. Because a setting change can affect the
+connected TV, do not casually toggle it during normal viewing.
+
+Safe initial test:
+1. Back up Home Assistant and update the Bose integration to v1.3.11.
+2. Restart Home Assistant. Check whether the new Power Sync switch shows Off
+   while the read-only Power Sync diagnostic still says Disabled.
+3. If the new switch is unavailable, the soundbar may not supply
+   powerOnDevice and powerOnTv in its GET response. **Do not force a manual
+   write**; share the observed status or a privacy-redacted error instead.
+4. At a convenient time, if comfortable changing TV power behaviour, switch
+   Power Sync On once in HA. Confirm the Bose app and the HA diagnostic agree.
+   Restore its previous Off state. Note whether TV power behaviour changes.
+5. Do not change HDMI-CEC, accessory pairing, or unrelated configuration.
+   If a control fails, do not repeatedly retry; report the result.
+
+Restore previous v1.3.10 through HACS if needed. Live PUT behaviour has not
+yet been independently tested, so the new switch remains experimental.
